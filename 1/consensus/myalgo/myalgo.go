@@ -1,83 +1,55 @@
 package myalgo
 
 import (
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/params"
-	"sync"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/consensus"
-	"math/big"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/ethereum/go-ethereum/log"
 	"encoding/binary"
-	"math/rand"
+	"errors"
 	"fmt"
-	"strconv"
-	"io/ioutil"
-	"os"
-	"encoding/json"
-	"github.com/Knetic/govaluate"
-	"github.com/pkg/errors"
+	"math/big"
+	"sync"
+	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
-type Problem struct {
-	Index    int    `json:"index"`
-	Equation string `json:"equation"`
-}
+// Various error messages to mark blocks invalid. These should be private to
+// prevent engine specific errors from being referenced in the remainder of the
+// codebase, inherently breaking if the engine is swapped out. Please put common
+// error types into the consensus package.
+var (
+	errLargeBlockTime    = errors.New("timestamp too big")
+	errZeroBlockTime     = errors.New("timestamp equals parent's")
+	errTooManyUncles     = errors.New("too many uncles")
+	errDuplicateUncle    = errors.New("duplicate uncle")
+	errUncleIsAncestor   = errors.New("uncle is ancestor")
+	errDanglingUncle     = errors.New("uncle's parent is not ancestor")
+	errInvalidDifficulty = errors.New("non-positive difficulty")
+	errInvalidMixDigest  = errors.New("invalid mix digest")
+	errInvalidPoW        = errors.New("invalid proof-of-work")
+)
 
-func getProblems() []Problem {
-
-	raw, err := ioutil.ReadFile("./problems.json")
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	var c []Problem
-	json.Unmarshal(raw, &c)
-	return c
-}
-
-func (p Problem) toString() string {
-	return toJson(p)
-}
-
-func toJson(p interface{}) string {
-	bytes, err := json.Marshal(p)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	return string(bytes)
-}
-
-var problems []Problem
-
-// New creates a Clique proof-of-authority consensus engine with the initial
-// signers set to the ones provided by the user.
+// New creates a MyAlgo raw proof-of-work consensus engine
 func New(config *params.MyAlgoConfig, db ethdb.Database) *MyAlgo {
 	// Set any missing consensus parameters to their defaults
 	conf := *config
-	problems = getProblems()
 	return &MyAlgo{
-		config:     &conf,
-		db:         db,
+		config: &conf,
+		db:     db,
 	}
 }
 
-
-
-// Clique is the proof-of-authority consensus engine proposed to support the
-// Ethereum testnet following the Ropsten attacks.
+// MyAlgo is the raw proof-of-work consensus engine
 type MyAlgo struct {
 	config *params.MyAlgoConfig // Consensus engine configuration parameters
 	db     ethdb.Database       // Database to store and retrieve snapshot checkpoints
-	lock   sync.RWMutex   // Protects the signer fields
+	lock   sync.RWMutex         // Protects the signer fields
 }
-
 
 // Author retrieves the Ethereum address of the account that minted the given
 // block, which may be different from the header's coinbase if a consensus
@@ -85,37 +57,37 @@ type MyAlgo struct {
 func (MyAlgo *MyAlgo) Author(header *types.Header) (common.Address, error) {
 	return header.Coinbase, nil
 }
+
 // VerifyHeader checks whether a header conforms to the consensus rules of a
 // given engine. Verifying the seal may be done optionally here, or explicitly
 // via the VerifySeal method.
 func (MyAlgo *MyAlgo) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
-	log.Info("will verfiyHeader")
-	p, _ := getProblemFromHeader(header)
-	result := solveProblem(p);
-	correct := checkResult(result, header)
-	if (correct){
-		return nil
-	}else {
-		return errors.New("Invalid solution to the problem ")
+	// Ensure that the header's extra-data section is of a reasonable size
+	// Verify the header's timestamp
+	// Verify the block's difficulty based in it's timestamp and parent's difficulty
+	// Verify that the gas limit is <= 2^63-1
+	// Verify that the gasUsed is <= gasLimit
+	// Verify that the gas limit remains within allowed bounds
+
+	// Verify that the block number is parent's +1
+
+	// Verify the engine specific seal securing the block
+	if seal {
+		if err := MyAlgo.VerifySeal(chain, header); err != nil {
+			return err
+		}
 	}
-}
 
-func checkResult(result float64, header *types.Header) bool {
-	fmt.Print("result : ")
-	fmt.Println(result)
+	// If all checks passed, validate any special fields for hard forks
 
-	fmt.Print("to compare with  : ")
-	fmt.Println(header.Nonce.Uint64())
-	toCompare := header.Nonce.Uint64()
-	return toCompare == uint64(result);
-
+	return nil
 }
 
 // VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
 // concurrently. The method returns a quit channel to abort the operations and
 // a results channel to retrieve the async verifications (the order is that of
 // the input slice).
-func (MyAlgo *MyAlgo) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error){
+func (MyAlgo *MyAlgo) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 	log.Info("will verfiyHeaders")
 	abort := make(chan struct{})
 	results := make(chan error, len(headers))
@@ -143,15 +115,21 @@ func (MyAlgo *MyAlgo) VerifyUncles(chain consensus.ChainReader, block *types.Blo
 
 // VerifySeal checks whether the crypto seal on a header is valid according to
 // the consensus rules of the given engine.
-func (MyAlgo *MyAlgo)  VerifySeal(chain consensus.ChainReader, header *types.Header) error{
+func (MyAlgo *MyAlgo) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
 	log.Info("will verfiy VerifySeal")
+
+	// Ensure that we have a valid difficulty for the block
+	if header.Difficulty.Sign() <= 0 {
+		return errInvalidDifficulty
+	}
+
+	// Recompute the digest and PoW value and verify against the header
 	return nil
 }
 
 // Prepare initializes the consensus fields of a block header according to the
 // rules of a particular engine. The changes are executed inline.
-func (MyAlgo *MyAlgo) Prepare(chain consensus.ChainReader, header *types.Header) error{
-	log.Info("will prepare the block")
+func (MyAlgo *MyAlgo) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	parent := chain.GetHeader(header.ParentHash, header.Number.Uint64()-1)
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
@@ -163,7 +141,6 @@ func (MyAlgo *MyAlgo) Prepare(chain consensus.ChainReader, header *types.Header)
 // CalcDifficulty is the difficulty adjustment algorithm. It returns the difficult
 // that a new block should have.
 func (MyAlgo *MyAlgo) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
-	//return calcDifficultyFrontier(time, parent)
 	return calcDifficultyHomestead(time, parent)
 }
 
@@ -227,114 +204,56 @@ func calcDifficultyHomestead(time uint64, parent *types.Header) *big.Int {
 	return x
 }
 
-
-
-/*
-
-	var status string = "p"
-	var arr []byte = []byte(status)
-	fmt.Printf("array: %v (%T)\n", arr, arr)
-	fmt.Println(string(arr[:]))
-
- */
 // Finalize runs any post-transaction state modifications (e.g. block rewards)
 // and assembles the final block.
 // Note: The block header and state database might be updated to reflect any
 // consensus rules that happen at finalization (e.g. block rewards).
 func (MyAlgo *MyAlgo) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction,
-	uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error){
+	uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	log.Info("will Finalize the block")
+
+	accumulateRewards(chain.Config(), state, header, uncles)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
-	b := types.NewBlock(header, txs, uncles, receipts)
 
-	return b, nil
+	// Header seems complete, assemble into a block and return
+	return types.NewBlock(header, txs, uncles, receipts), nil
 }
-
-
-func getProblemFromHeader (header *types.Header) (Problem, int64){
-	runes := []rune(header.ParentHash.String())
-	index_in_hash := string(runes[0:3])
-	index_in_decimal, _ := strconv.ParseInt(index_in_hash , 0, 64)
-	index_in_decimal = index_in_decimal % 10
-	return problems[index_in_decimal], index_in_decimal
-}
-
-func solveProblem(p Problem) (float64){
-	expression, _ := govaluate.NewEvaluableExpression(p.Equation)
-	result, _ := expression.Evaluate(nil)
-	result_in_float := result.(float64)
-	return result_in_float
-}
-
-
 
 // Seal generates a new block for the given input block with the local miner's
 // seal place on top.
-func (MyAlgo *MyAlgo) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error){
+func (MyAlgo *MyAlgo) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	log.Info("will Seal the block")
-	//time.Sleep(15 * time.Second)
+
+	time.Sleep(15 * time.Second)
+
 	header := block.Header()
 	/*
-	runes := []rune(header.ParentHash.String())
-	index_in_hash := string(runes[0:3])
-	index_in_decimal, _ := strconv.ParseInt(index_in_hash , 0, 64)
-	index_in_decimal = index_in_decimal % 10
+		runes := []rune(header.ParentHash.String())
+		index_in_hash := string(runes[0:3])
+		index_in_decimal, _ := strconv.ParseInt(index_in_hash , 0, 64)
+		index_in_decimal = index_in_decimal % 10
 	*/
-	p, index_in_decimal := getProblemFromHeader(header)
 
 	fmt.Print("hash is : ")
 	fmt.Print(header.ParentHash.String())
-	fmt.Print("problem number is : ")
-	fmt.Println(index_in_decimal)
 
-
-
-	fmt.Print("problem is : ")
-	fmt.Println(p.Equation)
-	result_in_float := solveProblem(p)
-	fmt.Print("solution is : ")
-	fmt.Println(result_in_float)
-	//problem_number := header.Hash().String()[2]
-
-	/*
-	fmt.Print("hash is : ")
-	fmt.Print(header.Hash().String())
-	fmt.Print("problem number is : ")
-	fmt.Println(index_in_decimal)
-
-
-	for _, p := range problems {
-		fmt.Print("problem is : ")
-		fmt.Println(p.Equation)
-		expression, _ := govaluate.NewEvaluableExpression(p.Equation);
-		result, _ := expression.Evaluate(nil);
-		fmt.Print("solution is : ")
-		fmt.Println(result)
-	}
-	*/
-
+	result := 10
+	result_in_float := float64(result)
 
 	header.Nonce, header.MixDigest = getRequiredHeader(result_in_float)
 	return block.WithSeal(header), nil
 }
 
-func getRequiredHeader(result float64) (types.BlockNonce, common.Hash){
+func getRequiredHeader(result float64) (types.BlockNonce, common.Hash) {
 	return getNonce(result), common.Hash{}
 }
 
-func getNonce(result float64) (types.BlockNonce) {
+func getNonce(result float64) types.BlockNonce {
 	var i uint64 = uint64(result)
 	var n types.BlockNonce
 
 	binary.BigEndian.PutUint64(n[:], i)
 	return n
-}
-
-
-
-func rangeIn(low, hi int) int {
-
-	return low + rand.Intn(hi-low)
 }
 
 // APIs returns the RPC APIs this consensus engine provides.
@@ -347,6 +266,41 @@ func (myAlgo *MyAlgo) APIs(chain consensus.ChainReader) []rpc.API {
 	}}
 }
 
+// proof-of-work protocol constants.
+var (
+	FrontierBlockReward    *big.Int = big.NewInt(5e+18) // Block reward in wei for successfully mining a block
+	ByzantiumBlockReward   *big.Int = big.NewInt(3e+18) // Block reward in wei for successfully mining a block upward from Byzantium
+	maxUncles                       = 2                 // Maximum number of uncles allowed in a single block
+	allowedFutureBlockTime          = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
+)
 
+// Some weird constants to avoid constant memory allocs for them.
+var (
+	big8  = big.NewInt(8)
+	big32 = big.NewInt(32)
+)
 
+// AccumulateRewards credits the coinbase of the given block with the mining
+// reward. The total reward consists of the static block reward and rewards for
+// included uncles. The coinbase of each uncle block is also rewarded.
+func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
+	// Select the correct block reward based on chain progression
+	blockReward := FrontierBlockReward
+	if config.IsByzantium(header.Number) {
+		blockReward = ByzantiumBlockReward
+	}
+	// Accumulate the rewards for the miner and any included uncles
+	reward := new(big.Int).Set(blockReward)
+	r := new(big.Int)
+	for _, uncle := range uncles {
+		r.Add(uncle.Number, big8)
+		r.Sub(r, header.Number)
+		r.Mul(r, blockReward)
+		r.Div(r, big8)
+		state.AddBalance(uncle.Coinbase, r)
 
+		r.Div(blockReward, big32)
+		reward.Add(reward, r)
+	}
+	state.AddBalance(header.Coinbase, reward)
+}

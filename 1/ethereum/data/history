@@ -1,2 +1,3 @@
 miner.start()
 myalgo.echoNumber(5)
+miner.start()
