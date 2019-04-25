@@ -3,13 +3,12 @@
         "chainId": 950327,
         "homesteadBlock": 0,
         "eip155Block": 0,
-        "eip158Block": 0,
-	"rawpow": {}
+        "eip158Block": 0
     },
     "difficulty": "20",
     "gasLimit": "2100000",
     "alloc": {
-        "f61d5eaa8aaa2af670b255cef2cc4aa274276d97": { "balance": "300000" }
+        "da281f5c530f32a94e561cf5dcb72c5b7aafbe77": { "balance": "300000" }
     }
 }
 
