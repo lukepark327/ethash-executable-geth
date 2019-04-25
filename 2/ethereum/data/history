@@ -1,0 +1,3 @@
+
+miner.start()
+miner.stop()
