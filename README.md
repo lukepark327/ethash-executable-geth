@@ -31,3 +31,8 @@ first.json:
 miner.start()
 rawpow.echoNumber(5)
 ```
+
+## Get Geth Version
+```bash
+build/bin/geth version
+```
