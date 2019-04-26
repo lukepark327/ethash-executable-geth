@@ -1,5 +1,7 @@
 # geth_breakdown
 
+## Set a Genesis Block
+
 ```bash
 $ mkdir mydata/genesis
 $ vi mydata/genesis/rawpow.json
@@ -23,3 +25,9 @@ first.json:
 }
 ```
 
+## Geth Command
+
+```bash
+miner.start()
+rawpow.echoNumber(5)
+```
