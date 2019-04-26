@@ -20,7 +20,7 @@ first.json:
     "difficulty": "20",
     "gasLimit": "2100000",
     "alloc": {
-        "29da13e995efac76e10f36e40f4736c64ebf0048": { "balance": "60000000000000000000" }
+        "0x5066f597D21F2aD5976F7bcA1B89cdf74052a4Cf": { "balance": "60000000000000000000" }
     }
 }
 ```
