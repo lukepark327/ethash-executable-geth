@@ -1,6 +1,7 @@
 # Research
 
 ## Context
+### Context
 In ```core/vm/evm.go```,
 ```go
 // Context provides the EVM with auxiliary information. Once provided
