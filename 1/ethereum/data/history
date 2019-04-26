@@ -1,3 +1,6 @@
 miner.start()
-myalgo.echoNumber(5)
+rawpow.echoNumber(5)
 miner.start()
+rawpow.echoNumber(5)
+miner.start()
+miner.stop()

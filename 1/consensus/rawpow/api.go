@@ -1,4 +1,4 @@
-package myalgo
+package rawpow
 
 import (
 	"github.com/ethereum/go-ethereum/consensus"
@@ -8,7 +8,7 @@ import (
 
 type API struct {
 	chain  consensus.ChainReader
-	myAlgo *MyAlgo
+	rawPow *RawPow
 }
 
 // PrintBlock retrieves a block and returns its pretty printed form.

@@ -1,4 +1,4 @@
-package myalgo
+package rawpow
 
 import (
 	"encoding/binary"
@@ -34,19 +34,19 @@ var (
 	errInvalidPoW        = errors.New("invalid proof-of-work")
 )
 
-// New creates a MyAlgo raw proof-of-work consensus engine
-func New(config *params.MyAlgoConfig, db ethdb.Database) *MyAlgo {
+// New creates a RawPow raw proof-of-work consensus engine
+func New(config *params.RawPowConfig, db ethdb.Database) *RawPow {
 	// Set any missing consensus parameters to their defaults
 	conf := *config
-	return &MyAlgo{
+	return &RawPow{
 		config: &conf,
 		db:     db,
 	}
 }
 
-// MyAlgo is the raw proof-of-work consensus engine
-type MyAlgo struct {
-	config *params.MyAlgoConfig // Consensus engine configuration parameters
+// RawPow is the raw proof-of-work consensus engine
+type RawPow struct {
+	config *params.RawPowConfig // Consensus engine configuration parameters
 	db     ethdb.Database       // Database to store and retrieve snapshot checkpoints
 	lock   sync.RWMutex         // Protects the signer fields
 }
@@ -54,14 +54,14 @@ type MyAlgo struct {
 // Author retrieves the Ethereum address of the account that minted the given
 // block, which may be different from the header's coinbase if a consensus
 // engine is based on signatures.
-func (MyAlgo *MyAlgo) Author(header *types.Header) (common.Address, error) {
+func (RawPow *RawPow) Author(header *types.Header) (common.Address, error) {
 	return header.Coinbase, nil
 }
 
 // VerifyHeader checks whether a header conforms to the consensus rules of a
 // given engine. Verifying the seal may be done optionally here, or explicitly
 // via the VerifySeal method.
-func (MyAlgo *MyAlgo) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
+func (RawPow *RawPow) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
 	// Ensure that the header's extra-data section is of a reasonable size
 	// Verify the header's timestamp
 	// Verify the block's difficulty based in it's timestamp and parent's difficulty
@@ -73,7 +73,7 @@ func (MyAlgo *MyAlgo) VerifyHeader(chain consensus.ChainReader, header *types.He
 
 	// Verify the engine specific seal securing the block
 	if seal {
-		if err := MyAlgo.VerifySeal(chain, header); err != nil {
+		if err := RawPow.VerifySeal(chain, header); err != nil {
 			return err
 		}
 	}
@@ -87,14 +87,14 @@ func (MyAlgo *MyAlgo) VerifyHeader(chain consensus.ChainReader, header *types.He
 // concurrently. The method returns a quit channel to abort the operations and
 // a results channel to retrieve the async verifications (the order is that of
 // the input slice).
-func (MyAlgo *MyAlgo) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
+func (RawPow *RawPow) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 	log.Info("will verfiyHeaders")
 	abort := make(chan struct{})
 	results := make(chan error, len(headers))
 
 	go func() {
 		for _, header := range headers {
-			err := MyAlgo.VerifyHeader(chain, header, false)
+			err := RawPow.VerifyHeader(chain, header, false)
 
 			select {
 			case <-abort:
@@ -108,14 +108,14 @@ func (MyAlgo *MyAlgo) VerifyHeaders(chain consensus.ChainReader, headers []*type
 
 // VerifyUncles verifies that the given block's uncles conform to the consensus
 // rules of a given engine.
-func (MyAlgo *MyAlgo) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
+func (RawPow *RawPow) VerifyUncles(chain consensus.ChainReader, block *types.Block) error {
 	log.Info("will verfiy uncles")
 	return nil
 }
 
 // VerifySeal checks whether the crypto seal on a header is valid according to
 // the consensus rules of the given engine.
-func (MyAlgo *MyAlgo) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
+func (RawPow *RawPow) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
 	log.Info("will verfiy VerifySeal")
 
 	// Ensure that we have a valid difficulty for the block
@@ -129,18 +129,18 @@ func (MyAlgo *MyAlgo) VerifySeal(chain consensus.ChainReader, header *types.Head
 
 // Prepare initializes the consensus fields of a block header according to the
 // rules of a particular engine. The changes are executed inline.
-func (MyAlgo *MyAlgo) Prepare(chain consensus.ChainReader, header *types.Header) error {
+func (RawPow *RawPow) Prepare(chain consensus.ChainReader, header *types.Header) error {
 	parent := chain.GetHeader(header.ParentHash, header.Number.Uint64()-1)
 	if parent == nil {
 		return consensus.ErrUnknownAncestor
 	}
-	header.Difficulty = MyAlgo.CalcDifficulty(chain, header.Time.Uint64(), parent)
+	header.Difficulty = RawPow.CalcDifficulty(chain, header.Time.Uint64(), parent)
 	return nil
 }
 
 // CalcDifficulty is the difficulty adjustment algorithm. It returns the difficult
 // that a new block should have.
-func (MyAlgo *MyAlgo) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
+func (RawPow *RawPow) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
 	return calcDifficultyHomestead(time, parent)
 }
 
@@ -208,7 +208,7 @@ func calcDifficultyHomestead(time uint64, parent *types.Header) *big.Int {
 // and assembles the final block.
 // Note: The block header and state database might be updated to reflect any
 // consensus rules that happen at finalization (e.g. block rewards).
-func (MyAlgo *MyAlgo) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction,
+func (RawPow *RawPow) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction,
 	uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 	log.Info("will Finalize the block")
 
@@ -221,7 +221,7 @@ func (MyAlgo *MyAlgo) Finalize(chain consensus.ChainReader, header *types.Header
 
 // Seal generates a new block for the given input block with the local miner's
 // seal place on top.
-func (MyAlgo *MyAlgo) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
+func (RawPow *RawPow) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	log.Info("will Seal the block")
 
 	time.Sleep(15 * time.Second)
@@ -257,11 +257,11 @@ func getNonce(result float64) types.BlockNonce {
 }
 
 // APIs returns the RPC APIs this consensus engine provides.
-func (myAlgo *MyAlgo) APIs(chain consensus.ChainReader) []rpc.API {
+func (rawPow *RawPow) APIs(chain consensus.ChainReader) []rpc.API {
 	return []rpc.API{{
-		Namespace: "myalgo",
+		Namespace: "rawpow",
 		Version:   "1.0",
-		Service:   &API{chain: chain, myAlgo: myAlgo},
+		Service:   &API{chain: chain, rawPow: rawPow},
 		Public:    false,
 	}}
 }

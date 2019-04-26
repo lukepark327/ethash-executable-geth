@@ -122,16 +122,17 @@ type ChainConfig struct {
 	// Various consensus engines
 	Ethash *EthashConfig `json:"ethash,omitempty"`
 	Clique *CliqueConfig `json:"clique,omitempty"`
-	MyAlgo *MyAlgoConfig `json:"myalgo,omitempty"`
+	RawPow *RawPowConfig `json:"rawpow,omitempty"`
 }
 
-// myalgo is the consensus engine configs for hacking.
-type MyAlgoConfig struct{}
+// rawpow is the consensus engine configs for hacking.
+type RawPowConfig struct{}
 
 // String implements the stringer interface, returning the consensus engine details.
-func (c *MyAlgoConfig) String() string {
-	return "myalgo"
+func (c *RawPowConfig) String() string {
+	return "rawpow"
 }
+
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
 type EthashConfig struct{}
 

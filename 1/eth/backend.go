@@ -31,7 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/clique"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/consensus/myalgo"
+	"github.com/ethereum/go-ethereum/consensus/rawpow"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/bloombits"
 	"github.com/ethereum/go-ethereum/core/rawdb"
@@ -212,9 +212,9 @@ func CreateDB(ctx *node.ServiceContext, config *Config, name string) (ethdb.Data
 // CreateConsensusEngine creates the required type of consensus engine instance for an Ethereum service
 func CreateConsensusEngine(ctx *node.ServiceContext, config *ethash.Config, chainConfig *params.ChainConfig, db ethdb.Database) consensus.Engine {
 
-	if chainConfig.MyAlgo != nil {
+	if chainConfig.RawPow != nil {
 		fmt.Println("Hemant algorand is configure as consensus engine")
-		return myalgo.New(chainConfig.MyAlgo, db)
+		return rawpow.New(chainConfig.RawPow, db)
 	}
 
 	// If proof-of-authority is requested, set it up

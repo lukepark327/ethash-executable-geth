@@ -30,16 +30,16 @@ var Modules = map[string]string{
 	"shh":        Shh_JS,
 	"swarmfs":    SWARMFS_JS,
 	"txpool":     TxPool_JS,
-	"myalgo":     MyAlgo_JS,
+	"rawpow":     RawPow_JS,
 }
 
-const MyAlgo_JS = `
+const RawPow_JS = `
 web3._extend({
-	property: 'myalgo',
+	property: 'rawpow',
 	methods: [
 		new web3._extend.Method({
 			name: 'echoNumber',
-			call: 'myalgo_echoNumber',
+			call: 'rawpow_echoNumber',
 			params: 1,
 			inputFormatter: [null]
 		}),
