@@ -28,7 +28,7 @@ type Context struct {
 ```
 Add Ethash components...?
 
-## NewEVM
+### NewEVM
 In ```core/vm/evm.go```,
 ```go
 // NewEVM returns a new EVM. The returned EVM is not thread safe and should
@@ -48,7 +48,7 @@ func NewEVM(ctx Context, statedb StateDB, chainConfig *params.ChainConfig, vmCon
 ```
 NewEVM should only ever be used once. So we ignore it.
 
-## NewEVMContext
+### NewEVMContext
 In ```core/evm.go```,
 ```go
 // NewEVMContext creates a new context for use in the EVM.
