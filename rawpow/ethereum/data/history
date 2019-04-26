@@ -1,6 +1,0 @@
-miner.start()
-rawpow.echoNumber(5)
-miner.start()
-rawpow.echoNumber(5)
-miner.start()
-miner.stop()
