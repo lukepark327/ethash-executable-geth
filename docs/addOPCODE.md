@@ -26,6 +26,7 @@ type Context struct {
 	Difficulty  *big.Int       // Provides information for DIFFICULTY
 }
 ```
+Add Ethash components...?
 
 ### NewEVM
 In ```core/vm/evm.go```,
