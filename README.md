@@ -35,4 +35,15 @@ rawpow.echoNumber(5)
 ## Get Geth Version
 ```bash
 build/bin/geth version
+version
+Geth
+Version: 1.8.12-unstable
+Architecture: amd64
+Protocol Versions: [63 62]
+Network Id: 1
+Go Version: go1.9.7
+Operating System: darwin
+GOPATH=
+GOROOT=/usr/local/Cellar/go@1.9/1.9.7/libexec
 ```
+Latest Geth Version is 'Punisher (v1.8.27)' (Apr. 26th, 2019)
