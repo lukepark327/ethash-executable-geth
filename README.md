@@ -1,4 +1,7 @@
-# geth_breakdown
+# Overview
+TBA
+
+# First: Create My Own Consensus
 
 ## Set a Genesis Block
 
@@ -47,3 +50,6 @@ GOPATH=
 GOROOT=/usr/local/Cellar/go@1.9/1.9.7/libexec
 ```
 Latest Geth Version is 'Punisher (v1.8.27)' (Apr. 26th, 2019)
+
+# Second: Modify EVM for Adding New OPCODEs
+TBA
