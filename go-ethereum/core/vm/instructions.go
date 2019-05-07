@@ -514,6 +514,17 @@ func opBlockhash(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack
 	return nil, nil
 }
 
+// My own OPCODE
+func opEthash(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
+	num, header, nonce := stack.pop(), stack.pop(), stack.pop()
+
+	// Hardcoding. Always return true(1)
+	_, _, _ = num, header, nonce
+
+	stack.push(math.U256(evm.interpreter.intPool.get().SetUint64(1)))
+	return nil, nil
+}
+
 func opCoinbase(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
 	stack.push(evm.Coinbase.Big())
 	return nil, nil

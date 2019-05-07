@@ -373,6 +373,12 @@ func NewFrontierInstructionSet() [256]operation {
 			validateStack: makeStackFunc(1, 1),
 			valid:         true,
 		},
+		ETHASH: {
+			execute:       opEthash,
+			gasCost:       constGasFunc(GasExtStep),
+			validateStack: makeStackFunc(3, 1),
+			valid:         true,
+		},
 		COINBASE: {
 			execute:       opCoinbase,
 			gasCost:       constGasFunc(GasQuickStep),

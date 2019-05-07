@@ -97,6 +97,7 @@ const (
 	NUMBER
 	DIFFICULTY
 	GASLIMIT
+	ETHASH
 )
 
 const (
@@ -270,6 +271,7 @@ var opCodeToString = map[OpCode]string{
 	NUMBER:     "NUMBER",
 	DIFFICULTY: "DIFFICULTY",
 	GASLIMIT:   "GASLIMIT",
+	ETHASH:     "ETHASH",
 
 	// 0x50 range - 'storage' and execution
 	POP: "POP",
@@ -430,6 +432,7 @@ var stringToOp = map[string]OpCode{
 	"RETURNDATASIZE": RETURNDATASIZE,
 	"RETURNDATACOPY": RETURNDATACOPY,
 	"BLOCKHASH":      BLOCKHASH,
+	"ETHASH":         ETHASH,
 	"COINBASE":       COINBASE,
 	"TIMESTAMP":      TIMESTAMP,
 	"NUMBER":         NUMBER,
