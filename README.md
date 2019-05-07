@@ -21,7 +21,7 @@ first.json:
         "rawpow": {}
     },
     "difficulty": "20",
-    "gasLimit": "2100000",
+    "gasLimit": "7000000",
     "alloc": {
         "0x5066f597D21F2aD5976F7bcA1B89cdf74052a4Cf": { "balance": "60000000000000000000" }
     }
