@@ -10,7 +10,7 @@ $ mkdir mydata/genesis
 $ vi mydata/genesis/rawpow.json
 ```
 
-first.json:
+rawpow.json:
 ```JSON
 {
     "config": {
