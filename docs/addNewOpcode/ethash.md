@@ -52,5 +52,67 @@ func (ethash *Ethash) VerifySeal(chain consensus.ChainReader, header *types.Head
 }
 ```
 
+## Use Engine for Calculating and Verifying Ethash
+```go
+otherEngine := ethash.New(ethash.Config{
+	CacheDir:       ~,
+	CachesInMem:    ~,
+	CachesOnDisk:   ~,
+	DatasetDir:     ~,
+	DatasetsInMem:  ~,
+	DatasetsOnDisk: ~,
+})
+```
+Config's structure is:
+```go
+type Config struct {
+	CacheDir       string
+	CachesInMem    int
+	CachesOnDisk   int
+	DatasetDir     string
+	DatasetsInMem  int
+	DatasetsOnDisk int
+	PowMode        Mode
+}
+```
+and its default value is
+```go
+Ethash: ethash.Config{
+	CacheDir:       "ethash",
+	CachesInMem:    2,
+	CachesOnDisk:   3,
+	DatasetsInMem:  1,
+	DatasetsOnDisk: 2,
+},
+```
+also
+```go
+	PoWMode: 	ModeNormal
+```
+But default `DatasetDir` needs some calculation;
+```go
+func init() {
+	home := os.Getenv("HOME")
+	if home == "" {
+		if user, err := user.Current(); err == nil {
+			home = user.HomeDir
+		}
+	}
+	if runtime.GOOS == "darwin" {
+		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "Library", "Ethash")
+	} else if runtime.GOOS == "windows" {
+		localappdata := os.Getenv("LOCALAPPDATA")
+		if localappdata != "" {
+			DefaultConfig.Ethash.DatasetDir = filepath.Join(localappdata, "Ethash")
+		} else {
+			DefaultConfig.Ethash.DatasetDir = filepath.Join(home, "AppData", "Local", "Ethash")
+		}
+	} else {
+		DefaultConfig.Ethash.DatasetDir = filepath.Join(home, ".ethash")
+	}
+}
+```
+Refer to `eth/config.go` for details.
+
 ## References
 * https://github.com/ethereum/wiki/wiki/Ethash#defining-the-seed-hash
