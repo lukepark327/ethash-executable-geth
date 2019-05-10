@@ -197,6 +197,73 @@ INFO [05-07|17:21:54.413529] Submitted transaction                    fullhash=0
 ```
 because 'true' is same as '1'.
 
+### Use Method-Arguments Scheme
+For example, there are two methods;
+```bash
+> cat solexam/testEthash.abi | python -m json.tool
+[
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "getEthash",
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "blockNumber",
+                "type": "uint256"
+            },
+            {
+                "name": "mixDigest",
+                "type": "bytes32"
+            },
+            {
+                "name": "hashNoNonce",
+                "type": "bytes32"
+            },
+            {
+                "name": "difficulty",
+                "type": "uint256"
+            },
+            {
+                "name": "nonce",
+                "type": "uint256"
+            }
+        ],
+        "name": "setEthash",
+        "outputs": [
+            {
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]
+```
+You can call those method by the following instructions;
+```bash
+> test.setEthash(3, "0x12", "0x34", 6, 1234, {from: eth.accounts[0], gas: 500000})
+INFO [05-10|17:45:18.799955] Submitted transaction                    fullhash=0xdfde98cecc4f5f310df2082921e6600eeb126da69935c1cc10a15f4b10ea9cd3 recipient=0x37b601a8d2367CB5962DD3D67d6Dd9c36F0d8040
+```
+and
+```bash
+> test.getEthash()
+false
+```
+
 # Trouble Shootings
 
 ## Fail to Deploy
