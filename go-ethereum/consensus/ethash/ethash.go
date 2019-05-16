@@ -492,7 +492,7 @@ func NewShared() *Ethash {
 // cache tries to retrieve a verification cache for the specified block number
 // by first checking against a list of in-memory caches, then against caches
 // stored on disk, and finally generating one if none can be found.
-func (ethash *Ethash) cache(block uint64) *cache {
+func (ethash *Ethash) Cache(block uint64) *cache {
 	epoch := block / epochLength
 	currentI, futureI := ethash.caches.get(epoch)
 	current := currentI.(*cache)
@@ -506,6 +506,28 @@ func (ethash *Ethash) cache(block uint64) *cache {
 		go future.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)
 	}
 	return current
+}
+
+// Return cache.cache for external packages.
+func (ethash *Ethash) CacheCache(block uint64) []uint32 {
+	epoch := block / epochLength
+	currentI, futureI := ethash.caches.get(epoch)
+	current := currentI.(*cache)
+
+	// Wait for generation finish.
+	current.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)
+
+	// If we need a new future cache, now's a good time to regenerate it.
+	if futureI != nil {
+		fmt.Println("futureI != nil")
+
+		future := futureI.(*cache)
+		go future.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.PowMode == ModeTest)
+	}
+
+	runtime.KeepAlive(current)
+
+	return current.cache
 }
 
 // dataset tries to retrieve a mining dataset for the specified block number

@@ -17,12 +17,18 @@
 package vm
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/big"
+	"os"
+	"os/user"
+	"path/filepath"
+	"runtime"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
@@ -516,11 +522,63 @@ func opBlockhash(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack
 
 // My own OPCODE
 func opEthash(pc *uint64, evm *EVM, contract *Contract, memory *Memory, stack *Stack) ([]byte, error) {
-	num, header, nonce := stack.pop(), stack.pop(), stack.pop()
+	// Refer to go-ethereum/core/types/block.go
+	// Inputs	: blockNumber for cache, header.MixDigest, header.HashNoNonce().Bytes(), header.Nonce.Uint64()
+	// Outputs	: True or False
+	num, mixdigest, truncated, difficulty, nonce := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
+
+	// fmt.Println("truncated: ", truncated)
+	// fmt.Println("Bytes: ", truncated.Bytes())
+
+	// // quick quit
+	// stack.push(math.U256(evm.interpreter.intPool.get().SetUint64(1)))
+	// return nil, nil
+
+	datasetDir := ""
+	home := os.Getenv("HOME")
+	if home == "" {
+		if user, err := user.Current(); err == nil {
+			home = user.HomeDir
+		}
+	}
+	if runtime.GOOS == "windows" {
+		datasetDir = filepath.Join(home, "AppData", "otherethash")
+	} else {
+		datasetDir = filepath.Join(home, ".otherethash")
+	}
+
+	// TODO: make dir, call if exist
+	otherEthash := ethash.New(ethash.Config{
+		CacheDir:       "otherethash",
+		CachesInMem:    2,
+		CachesOnDisk:   3,
+		DatasetsInMem:  1,
+		DatasetsOnDisk: 2,
+		DatasetDir:     datasetDir,
+	})
+
+	// Recompute the digest and PoW value and verify against the header
+	number := num.Uint64()
+
+	cacheCache := otherEthash.CacheCache(number)
+	size := datasetSize(number)
+	digest, result := ethash.HashimotoLight(size, cacheCache, truncated.Bytes(), nonce.Uint64())
+
+	if !bytes.Equal(mixdigest.Bytes(), digest) {
+		stack.push(math.U256(evm.interpreter.intPool.get().SetUint64(0)))
+		return nil, nil
+	}
+	target := new(big.Int).Div(maxUint256, difficulty)
+	if new(big.Int).SetBytes(result).Cmp(target) > 0 {
+		stack.push(math.U256(evm.interpreter.intPool.get().SetUint64(0)))
+		return nil, nil
+	}
 
 	// Hardcoding. Always return true(1)
-	_, _, _ = num, header, nonce
+	// _, _, _, _, _ = num, mixdigest, truncated, diff, nonce
+	// _, _ = cache, size
 
+	// true
 	stack.push(math.U256(evm.interpreter.intPool.get().SetUint64(1)))
 	return nil, nil
 }

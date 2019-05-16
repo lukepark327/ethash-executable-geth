@@ -281,6 +281,7 @@ func (ethash *Ethash) verifyHeader(chain consensus.ChainReader, header, parent *
 	if err := misc.VerifyForkHashes(chain.Config(), header, uncle); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -480,12 +481,12 @@ func (ethash *Ethash) VerifySeal(chain consensus.ChainReader, header *types.Head
 	// Recompute the digest and PoW value and verify against the header
 	number := header.Number.Uint64()
 
-	cache := ethash.cache(number)
+	cache := ethash.Cache(number)
 	size := datasetSize(number)
 	if ethash.config.PowMode == ModeTest {
 		size = 32 * 1024
 	}
-	digest, result := hashimotoLight(size, cache.cache, header.HashNoNonce().Bytes(), header.Nonce.Uint64())
+	digest, result := HashimotoLight(size, cache.cache, header.HashNoNonce().Bytes(), header.Nonce.Uint64())
 	// Caches are unmapped in a finalizer. Ensure that the cache stays live
 	// until after the call to hashimotoLight so it's not unmapped while being used.
 	runtime.KeepAlive(cache)

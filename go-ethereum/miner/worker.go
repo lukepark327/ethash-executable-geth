@@ -333,6 +333,27 @@ func (self *worker) wait() {
 			}
 			self.chain.PostChainEvents(events, logs)
 
+			// For Testing
+			header := block.Header()
+			log.Info(
+				"HEADER INFO",
+				"Hash", header.Hash(),
+				"Number", header.Number,
+				"MixDigest", header.MixDigest,
+				"HashNoNonce", header.HashNoNonce(),
+				"Difficulty", header.Difficulty,
+				"Nonce", header.Nonce,
+			)
+			fmt.Println(
+				"\nHEADER INFO",
+				"\nHash", header.Hash().String(),
+				"\nNumber", header.Number,
+				"\nMixDigest", header.MixDigest.String(),
+				"\nHashNoNonce", header.HashNoNonce().String(),
+				"\nDifficulty", header.Difficulty,
+				"\nNonce", header.Nonce.Uint64(),
+			)
+
 			// Insert the block into the set of pending ones to wait for confirmations
 			self.unconfirmed.Insert(block.NumberU64(), block.Hash())
 		}

@@ -224,7 +224,7 @@ func (RawPow *RawPow) Finalize(chain consensus.ChainReader, header *types.Header
 func (RawPow *RawPow) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	log.Info("will Seal the block")
 
-	time.Sleep(15 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	header := block.Header()
 	/*
