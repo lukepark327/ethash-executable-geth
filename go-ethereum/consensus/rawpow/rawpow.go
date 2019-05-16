@@ -3,7 +3,6 @@ package rawpow
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"math/big"
 	"sync"
 	"time"
@@ -234,8 +233,8 @@ func (RawPow *RawPow) Seal(chain consensus.ChainReader, block *types.Block, stop
 		index_in_decimal = index_in_decimal % 10
 	*/
 
-	fmt.Print("hash is : ")
-	fmt.Print(header.ParentHash.String())
+	// fmt.Print("hash is : ")
+	// fmt.Print(header.ParentHash.String())
 
 	result := 10
 	result_in_float := float64(result)
