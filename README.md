@@ -53,6 +53,10 @@ Latest Geth Version is 'Punisher (v1.8.27)' (Apr. 26th, 2019)
 
 # Second: Modify EVM for Adding New OPCODEs
 
+1. Add new function treats a new OPCODE opEthash.
+2. You can use the other blockchain's own Ethash algo. with modifing instructions_ethash_algorithm.go.
+3. It makes some go-ethereum/otherEthash/~ files which contain the other blockchain's ethash caches.
+
 ## Run geth
 ```bash
 $ build/bin/geth --datadir ./mydata/ --networkid 950327 --port 32222 --rpc --rpcport 8222 --nodiscover console
