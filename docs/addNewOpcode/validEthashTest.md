@@ -70,7 +70,7 @@ contract realEthash {
 
 ## Script on Geth
 ```javascript
-loadScript("/Users/luke/Desktop/solidity_breakdown/solidity/solexam/realEthash.js")
+loadScript("/Users/luke/Desktop/solidity-breakdown/solidity/solexam/realEthash.js")
 
 var testContract = web3.eth.contract(JSON.parse(testOutput.contracts["solexam/realEthash.sol:realEthash"].abi));
 
