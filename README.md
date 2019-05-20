@@ -38,13 +38,13 @@ $ build/bin/geth --datadir ./mydata/ init ./mydata/genesis/rawpow.json
 ## Geth Command
 
 ```bash
-miner.start()
-rawpow.echoNumber(5)
+> miner.start()
+> rawpow.echoNumber(5)
 ```
 
 ## Get Geth Version
 ```bash
-build/bin/geth version
+$ build/bin/geth version
 version
 Geth
 Version: 1.8.12-unstable
