@@ -18,14 +18,21 @@ rawpow.json:
         "homesteadBlock": 0,
         "eip155Block": 0,
         "eip158Block": 0,
+	"eip160Block": 0,
+	"byzantiumBlock": 0,
+	"eip150Block": 0,
         "rawpow": {}
     },
     "difficulty": "20",
     "gasLimit": "7000000",
     "alloc": {
-        "0x5066f597D21F2aD5976F7bcA1B89cdf74052a4Cf": { "balance": "60000000000000000000" }
+        "6282ad5f86c03726722ec397844d2f87ced3af89": { "balance": "60000000000000000000" }
     }
 }
+```
+
+```bash
+$ build/bin/geth --datadir ./mydata/ init ./mydata/genesis/rawpow.json
 ```
 
 ## Geth Command
