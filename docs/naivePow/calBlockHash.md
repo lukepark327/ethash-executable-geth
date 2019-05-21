@@ -27,6 +27,33 @@ type Header struct {
 }
 ```
 
+### Print Block Heador Info
+
+Add codes `func (self *worker) wait()` in `miner/worker.go`,
+
+```go
+// For Testing
+header := block.Header()
+log.Info(
+	"HEADER INFO",
+	"Hash", header.Hash(),
+	"Number", header.Number,
+	"MixDigest", header.MixDigest,
+	"HashNoNonce", header.HashNoNonce(),
+	"Difficulty", header.Difficulty,
+	"Nonce", header.Nonce,
+)
+fmt.Println(
+	"\nHEADER INFO",
+	"\nHash", header.Hash().String(),
+	"\nNumber", header.Number,
+	"\nMixDigest", header.MixDigest.String(),
+	"\nHashNoNonce", header.HashNoNonce().String(),
+	"\nDifficulty", header.Difficulty,
+	"\nNonce", header.Nonce.Uint64(),
+)
+```
+
 ## Calculate Hash
 
 ```go
@@ -48,7 +75,7 @@ Use all block header's info with a keccak256 hash function.
 
 ## Test
 
-
+TBA
 
 # References
 
