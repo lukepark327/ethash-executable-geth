@@ -41,7 +41,7 @@ var (
   header  = block.Header()
   hash    = header.HashNoNonce().Bytes()
   target  = new(big.Int).Div(maxUint256, header.Difficulty)
-  number  = header.Number.Uint64()
+  // number  = header.Number.Uint64()
   // dataset = ethash.dataset(number)
 )
 // Start generating random nonces until we abort or find a good one
@@ -61,7 +61,6 @@ will be changed to
 
 ```go
 func naivePow(hash []byte, nonce uint64) ([]byte, []byte) {
-	// Calculate the number of theoretical rows (we use one buffer nonetheless)
 	// rows := uint32(size / mixBytes)
 
 	// Combine header+nonce into a 64 byte seed
@@ -70,7 +69,7 @@ func naivePow(hash []byte, nonce uint64) ([]byte, []byte) {
 	binary.LittleEndian.PutUint64(seed[32:], nonce)
 
 	seed = crypto.Keccak512(seed)
-	seedHead := binary.LittleEndian.Uint32(seed)
+	// seedHead := binary.LittleEndian.Uint32(seed)
 
 	// Start the mix with replicated seed
 	mix := make([]uint32, mixBytes/4)
