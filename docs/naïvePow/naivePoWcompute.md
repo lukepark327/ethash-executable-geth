@@ -97,6 +97,15 @@ Use `naivePow` function instead of `HashimotoLight`.
 
 ```go
 digest, result := naivePow(header.HashNoNonce().Bytes(), header.Nonce.Uint64())
+
+if !bytes.Equal(header.MixDigest[:], digest) {
+	return errInvalidMixDigest
+}
+target := new(big.Int).Div(maxUint256, header.Difficulty)
+if new(big.Int).SetBytes(result).Cmp(target) > 0 {
+	return errInvalidPoW
+}
+return nil
 ```
 
 # References
