@@ -61,52 +61,31 @@ will be changed to
 
 ```go
 func naivePow(hash []byte, nonce uint64) ([]byte, []byte) {
-	// rows := uint32(size / mixBytes)
+	digest := make([]byte, 32)
+	copy(digest, hash)
 
 	// Combine header+nonce into a 64 byte seed
 	seed := make([]byte, 40)
 	copy(seed, hash)
 	binary.LittleEndian.PutUint64(seed[32:], nonce)
 
-	seed = crypto.Keccak512(seed)
-	// seedHead := binary.LittleEndian.Uint32(seed)
-
-	// Start the mix with replicated seed
-	mix := make([]uint32, mixBytes/4)
-	for i := 0; i < len(mix); i++ {
-		mix[i] = binary.LittleEndian.Uint32(seed[i%16*4:])
-	}
-	// Mix in random dataset nodes
-	// temp := make([]uint32, len(mix))
-
-	// for i := 0; i < loopAccesses; i++ {
-	// 	parent := fnv(uint32(i)^seedHead, mix[i%len(mix)]) % rows
-	// 	for j := uint32(0); j < mixBytes/hashBytes; j++ {
-	// 		copy(temp[j*hashWords:], lookup(2*parent+j))
-	// 	}
-	// 	fnvHash(mix, temp)
-	// }
-	// Compress mix
-	for i := 0; i < len(mix); i += 4 {
-		mix[i/4] = fnv(fnv(fnv(mix[i], mix[i+1]), mix[i+2]), mix[i+3])
-	}
-	mix = mix[:len(mix)/4]
-
-	digest := make([]byte, common.HashLength)
-	for i, val := range mix {
-		binary.LittleEndian.PutUint32(digest[i*4:], val)
-	}
 	return digest, crypto.Keccak256(append(seed, digest...))
+}
+
+func (littleEndian) PutUint64(b []byte, v uint64) {
+	_ = b[7] // early bounds check to guarantee safety of writes below
+	b[0] = byte(v)
+	b[1] = byte(v >> 8)
+	b[2] = byte(v >> 16)
+	b[3] = byte(v >> 24)
+	b[4] = byte(v >> 32)
+	b[5] = byte(v >> 40)
+	b[6] = byte(v >> 48)
+	b[7] = byte(v >> 56)
 }
 ```
 
-Refer `hashimoto` function.
-
-## hashimoto
-
-In `./go-ethereum/consensus/ethash/algorithm.go`,
-
-`hashimoto` aggregates data from the full dataset in order to produce our final value for a particular header hash and nonce.
+Now digest is just `header.HashNoNonce().Bytes()`.
 
 # VerifySeal
 
@@ -118,4 +97,29 @@ Use `naivePow` function instead of `HashimotoLight`.
 
 ```go
 digest, result := naivePow(header.HashNoNonce().Bytes(), header.Nonce.Uint64())
+```
+
+# References
+
+Refer Bitcoin's PoW. See https://github.com/bitcoin/bitcoin/blob/master/src/pow.cpp#L74
+
+```cpp
+bool CheckProofOfWork(uint256 hash, unsigned int nBits, const Consensus::Params& params)
+{
+    bool fNegative;
+    bool fOverflow;
+    arith_uint256 bnTarget;
+
+    bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
+
+    // Check range
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
+        return false;
+
+    // Check proof of work matches claimed amount
+    if (UintToArith256(hash) > bnTarget)
+        return false;
+
+    return true;
+}
 ```
