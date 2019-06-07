@@ -335,23 +335,37 @@ func (self *worker) wait() {
 
 			// For Testing
 			header := block.Header()
-			log.Info(
-				"HEADER INFO",
-				"Hash", header.Hash(),
-				"Number", header.Number,
-				"MixDigest", header.MixDigest,
-				"HashNoNonce", header.HashNoNonce(),
-				"Difficulty", header.Difficulty,
-				"Nonce", header.Nonce,
-			)
+			/*
+				log.Info(
+					"HEADER INFO",
+					"Hash", header.Hash(),
+					"1. ParentHash", header.ParentHash,
+					"Number", header.Number,
+					"MixDigest", header.MixDigest,
+					"HashNoNonce", header.HashNoNonce(),
+					"Difficulty", header.Difficulty,
+					"Nonce", header.Nonce,
+				)
+			*/
 			fmt.Println(
-				"\nHEADER INFO",
-				"\nHash", header.Hash().String(),
-				"\nNumber", header.Number,
-				"\nMixDigest", header.MixDigest.String(),
-				"\nHashNoNonce", header.HashNoNonce().String(),
-				"\nDifficulty", header.Difficulty,
-				"\nNonce", header.Nonce.Uint64(),
+				"\nHash			:", header.Hash().String(),
+				"\nHashNoNonce	:", header.HashNoNonce().String(),
+				"\n---",
+				"\n1. ParentHash:", header.ParentHash.String(),
+				"\n2. UncleHash	:", header.UncleHash.String(),
+				"\n3. Coinbase	:", header.Coinbase.String(),
+				"\n4. Root		:", header.Root.String(),
+				"\n5. TxHash	:", header.TxHash.String(),
+				"\n6. RcHash	:", header.ReceiptHash.String(),
+				"\n7. Bloom		:", header.Bloom,
+				"\n8. Difficulty:", header.Difficulty,
+				"\n9. Number	:", header.Number,
+				"\n10.GasLimit	:", header.GasLimit,
+				"\n11.Gasused	:", header.GasUsed,
+				"\n12.Time		:", header.Time,
+				"\n13.Extra		:", header.Extra,
+				"\n14.MixDigest	:", header.MixDigest.String(),
+				"\n15.Nonce		:", header.Nonce.Uint64(),
 			)
 
 			// Insert the block into the set of pending ones to wait for confirmations

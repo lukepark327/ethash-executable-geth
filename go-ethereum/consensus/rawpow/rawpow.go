@@ -223,19 +223,7 @@ func (RawPow *RawPow) Finalize(chain consensus.ChainReader, header *types.Header
 func (RawPow *RawPow) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	log.Info("will Seal the block")
 
-	time.Sleep(5 * time.Second)
-
 	header := block.Header()
-	/*
-		runes := []rune(header.ParentHash.String())
-		index_in_hash := string(runes[0:3])
-		index_in_decimal, _ := strconv.ParseInt(index_in_hash , 0, 64)
-		index_in_decimal = index_in_decimal % 10
-	*/
-
-	// fmt.Print("hash is : ")
-	// fmt.Print(header.ParentHash.String())
-
 	result := 10
 	result_in_float := float64(result)
 
@@ -245,11 +233,22 @@ func (RawPow *RawPow) Seal(chain consensus.ChainReader, block *types.Block, stop
 
 func getRequiredHeader(result float64) (types.BlockNonce, common.Hash) {
 	return getNonce(result), common.Hash{}
+	/*
+		mixhash is actually calculated from nonce as intermediate value
+		when validating PoW with Hashimoto algorithm.
+		But this calculation is still pretty heavy and a node might be
+		DDoSed by blocks with incorrect nonces.
+		mixhash is included into block to perform lightweight PoW
+		'pre-validation' to avoid such attack, as generating a correct
+		mixhash still requires at least some work for attacker.
+	*/
 }
 
 func getNonce(result float64) types.BlockNonce {
 	var i uint64 = uint64(result)
 	var n types.BlockNonce
+
+	time.Sleep(5 * time.Second)
 
 	binary.BigEndian.PutUint64(n[:], i)
 	return n

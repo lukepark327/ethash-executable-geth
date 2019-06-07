@@ -18,6 +18,7 @@ package ethash
 
 import (
 	crand "crypto/rand"
+	"encoding/binary"
 	"math"
 	"math/big"
 	"math/rand"
@@ -27,6 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -34,7 +36,9 @@ import (
 // the block's difficulty requirements.
 func (ethash *Ethash) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
 	// If we're running a fake PoW, simply return a 0 nonce immediately
-	if ethash.config.PowMode == ModeFake || ethash.config.PowMode == ModeFullFake {
+	if
+	// true ||
+	ethash.config.PowMode == ModeFake || ethash.config.PowMode == ModeFullFake {
 		header := block.Header()
 		header.Nonce, header.MixDigest = types.BlockNonce{}, common.Hash{}
 		return block.WithSeal(header), nil
@@ -97,11 +101,11 @@ func (ethash *Ethash) Seal(chain consensus.ChainReader, block *types.Block, stop
 func (ethash *Ethash) mine(block *types.Block, id int, seed uint64, abort chan struct{}, found chan *types.Block) {
 	// Extract some data from the header
 	var (
-		header  = block.Header()
-		hash    = header.HashNoNonce().Bytes()
-		target  = new(big.Int).Div(maxUint256, header.Difficulty)
-		number  = header.Number.Uint64()
-		dataset = ethash.dataset(number)
+		header = block.Header()
+		hash   = header.HashNoNonce().Bytes()
+		target = new(big.Int).Div(maxUint256, header.Difficulty)
+		// number = header.Number.Uint64()
+		// dataset = ethash.dataset(number)
 	)
 	// Start generating random nonces until we abort or find a good one
 	var (
@@ -127,7 +131,10 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result := hashimotoFull(dataset.dataset, hash, nonce)
+			// digest, result := hashimotoFull(dataset.dataset, hash, nonce)
+			// naïvePoW
+			digest, result := naivePow(hash, nonce)
+
 			if new(big.Int).SetBytes(result).Cmp(target) <= 0 {
 				// Correct nonce found, create a new header with it
 				header = types.CopyHeader(header)
@@ -148,5 +155,17 @@ search:
 	}
 	// Datasets are unmapped in a finalizer. Ensure that the dataset stays live
 	// during sealing so it's not unmapped while being read.
-	runtime.KeepAlive(dataset)
+	// runtime.KeepAlive(dataset)
+}
+
+func naivePow(hash []byte, nonce uint64) ([]byte, []byte) {
+	digest := make([]byte, 32)
+	copy(digest, hash)
+
+	// Combine header+nonce into a 64 byte seed
+	seed := make([]byte, 40)
+	copy(seed, hash)
+	binary.LittleEndian.PutUint64(seed[32:], nonce)
+
+	return digest, crypto.Keccak256(append(seed, digest...))
 }
