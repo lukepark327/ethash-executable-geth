@@ -25,7 +25,7 @@ for i := 0; i < threads; i++ {
 
 * `uint64(ethash.rand.Int63())` is properly seeded random source for nonces.
 
-# mine
+## mine
 
 `mine` is the actual proof-of-work miner that searches for a nonce starting from seed that results in correct final block difficulty.
 
@@ -107,3 +107,15 @@ Refer `hashimoto` function.
 In `./go-ethereum/consensus/ethash/algorithm.go`,
 
 `hashimoto` aggregates data from the full dataset in order to produce our final value for a particular header hash and nonce.
+
+# VerifySeal
+
+In `./consensus/ethash/consensus.go`,
+
+`VerifySeal` implements consensus.Engine, checking whether the given block satisfies the PoW difficulty requirements.
+
+Use `naivePow` function instead of `HashimotoLight`.
+
+```go
+digest, result := naivePow(header.HashNoNonce().Bytes(), header.Nonce.Uint64())
+```
