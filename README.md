@@ -58,6 +58,10 @@ GOROOT=/usr/local/Cellar/go@1.9/1.9.7/libexec
 ```
 Latest Geth Version is 'Punisher (v1.8.27)' (Apr. 26th, 2019)
 
+# Change Ethash to naïvePoW
+
+See https://github.com/twodude/geth-breakdown/blob/master/docs/naïvePow/naivePoWcompute.md
+
 # Second: Modify EVM for Adding New OPCODEs
 
 1. Add new function treats a new OPCODE opEthash.
