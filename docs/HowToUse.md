@@ -42,12 +42,12 @@ $ touch mydata/genesis/default.json
 $ build/bin/geth --datadir ./mydata/ init ./mydata/genesis/default.json
 ```
 
-## 새 계좌 생성
+## 새 account 생성
 ```bash
 $ build/bin/geth --datadir ./mydata/ account new
 ```
 
-### 계좌 생성 확인
+* 다음 명령으로 account가 잘 생성됐는지 확인
 ```bash
 $ build/bin/geth --datadir ./mydata/ account list
 ```
@@ -98,4 +98,44 @@ $ sh naivePoW/deps.sh
     "password": "geth에서 설정한 비밀번호"
   }
 }
+```
+
+* `genesis.js` 실행
+```bash
+$ node naivePoW/genesis.js
+```
+
+* `contractDeploy.js` 실행
+```bash
+$ node naivePoW/contractDeploy.js
+```
+
+### Relay 구동
+
+```bash
+$ node naivePoW/relay.js 
+```
+
+### 트랜잭션 검증하기
+
+```bash
+$ node naivePow/txProof.js [0x8b68b49ea234880ea061803aae2322ba3ac57a2ae8a5feac4e13a4b3f67622f1]
+```
+
+`txProof.js` 구동 시 인자로 검증하고자 하는 트랜잭션 ID를 명시
+
+* 올바른 트랜잭션일 경우:
+```bash
+$ node naivePoW/txProof.js 0x8b68b49ea234880ea061803aae2322ba3ac57a2ae8a5feac4e13a4b3f67622f1
+> Unlocking an account
+> checkTxProof: true
+```
+
+* 올바르지 않은 트랜잭션일 경우:
+```bash
+node naivePoW/txProof.js 0x8b68b49ea234880ea061803aae2322ba3ac57a2ae8a5feac4e13a4b3f67622f2
+> Unlocking an account
+node:26813) UnhandledPromiseRejectionWarning: transaction not found
+(node:26813) UnhandledPromiseRejectionWarning: Unhandled promise rejection. This error originated either by throwing inside of an async function without a catch block, or by rejecting a promise which was not handled with .catch(). (rejection id: 1)
+(node:26813) [DEP0018] DeprecationWarning: Unhandled promise rejections are deprecated. In the future, promise rejections that are not handled will terminate the Node.js process with a non-zero exit code.
 ```
