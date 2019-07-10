@@ -250,7 +250,6 @@ func (a *App) Run(arguments []string) (err error) {
 	args := context.Args()
 	if args.Present() {
 		name := args.First()
-		fmt.Println(name)
 		c := a.Command(name)
 		if c != nil {
 			return c.Run(context)
