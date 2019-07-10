@@ -31,3 +31,6 @@ eth.mining
 miner.start()exit
 miner.start()
 eth.mining
+miner.start()
+eth.blockNumber
+eth.accounts

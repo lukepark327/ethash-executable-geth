@@ -19,6 +19,7 @@ package ethash
 import (
 	"bytes"
 	crand "crypto/rand"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"math"
@@ -33,6 +34,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -132,11 +134,12 @@ func (ethash *Ethash) Seal(chain consensus.ChainReader, block *types.Block, resu
 func (ethash *Ethash) mine(block *types.Block, id int, seed uint64, abort chan struct{}, found chan *types.Block) {
 	// Extract some data from the header
 	var (
-		header  = block.Header()
-		hash    = ethash.SealHash(header).Bytes()
-		target  = new(big.Int).Div(two256, header.Difficulty)
-		number  = header.Number.Uint64()
-		dataset = ethash.dataset(number, false)
+		header = block.Header()
+		// hash    = ethash.SealHash(header).Bytes()
+		hash   = ethash.SealHash(header).Bytes()
+		target = new(big.Int).Div(two256, header.Difficulty)
+		// number  = header.Number.Uint64()
+		// dataset = ethash.dataset(number, false)
 	)
 	// Start generating random nonces until we abort or find a good one
 	var (
@@ -162,7 +165,9 @@ search:
 				attempts = 0
 			}
 			// Compute the PoW value of this nonce
-			digest, result := hashimotoFull(dataset.dataset, hash, nonce)
+			// digest, result := hashimotoFull(dataset.dataset, hash, nonce)
+			digest, result := naivePow(hash, nonce)
+
 			if new(big.Int).SetBytes(result).Cmp(target) <= 0 {
 				// Correct nonce found, create a new header with it
 				header = types.CopyHeader(header)
@@ -183,7 +188,19 @@ search:
 	}
 	// Datasets are unmapped in a finalizer. Ensure that the dataset stays live
 	// during sealing so it's not unmapped while being read.
-	runtime.KeepAlive(dataset)
+	// runtime.KeepAlive(dataset)
+}
+
+func naivePow(hash []byte, nonce uint64) ([]byte, []byte) {
+	digest := make([]byte, 32)
+	copy(digest, hash)
+
+	// Combine header+nonce into a 64 byte seed
+	seed := make([]byte, 40)
+	copy(seed, hash)
+	binary.LittleEndian.PutUint64(seed[32:], nonce)
+
+	return digest, crypto.Keccak256(append(seed, digest...))
 }
 
 // remote is a standalone goroutine to handle remote mining related stuff.
