@@ -1,9 +1,10 @@
 # Contents
 
-* [Install & Build](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#Install-&-Build)
+* [Install & Build](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#install--build)
     * [수정된 geth](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#수정된-geth)
-    * 
-
+    * [수정된 Solidity Compiler](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#수정된-solidity-compiler)
+    * [Relayer](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#relayer)
+* [Use Relayer]()
 
 
 
@@ -78,15 +79,15 @@ $ build/bin/geth console --datadir ./mydata/ --networkid 950327 --port 32222 --r
 
 `http://localhost:8002` or `http://"IP주소":8002`로 수정된 geth에 접근할 수 있다.
 
-# Geth Console
+## Use Geth Console
 
-## 채굴 시작하기
+### 채굴 시작하기
 
 ```bash
 > miner.start()
 ```
 
-## 채굴 중단하기
+### 채굴 중단하기
 
 ```bash
 > miner.stop()
@@ -140,7 +141,7 @@ $ solc --combined-json abi,bin RelayNaivePoW.sol > RelayNaivePoW.json
 
 git을 이용해 다음 경로에서 다운로드 `https://github.com/twodude/eth-proof-sol.git`
 
-# Private -> Testnet
+# Use Relayer: Private -> Testnet
 Relayer를 사용해 Private 체인의 트랜잭션을 이더리움 테스트넷에서 검증하는 example:
 
 ## Compile Smart Contract
