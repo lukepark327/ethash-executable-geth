@@ -4,10 +4,11 @@
     * [수정된 geth](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#수정된-geth)
     * [수정된 Solidity Compiler](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#수정된-solidity-compiler)
     * [Relayer](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#relayer)
-* [Use Relayer]()
-
-
-
+* [Use Relayer](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#use-relayer-private---testnet)
+    * [Compile Smart Contract](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#compile-smart-contract)
+    * [Relayer 기본 정보 작성](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#relayer-기본-정보-작성)
+    * [Relay 구동](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#relay-구동)
+    * [트랜잭션 검증하기](https://github.com/twodude/geth-breakdown/blob/master/docs/HowToUse.md#트랜잭션-검증하기)
 
 # Install & Build
 
