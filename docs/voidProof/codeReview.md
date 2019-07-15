@@ -29,7 +29,7 @@ func TestMissingKeyProof(t *testing.T)
 
 * Tests that missing keys can also be proven.
 
-** The test explicitly uses a single entry trie and checks for missing keys both before and after the single entry.
+* The test explicitly uses a single entry trie and checks for missing keys both before and after the single entry.
 
 ## Verify Merkle Proof
 
