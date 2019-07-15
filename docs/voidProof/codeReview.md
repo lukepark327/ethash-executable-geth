@@ -114,4 +114,10 @@ case nil:
 
 # Conclusion
 
-**Void Proof:** The above function `VerifyProof` returns `nil, i, nil`. No error, but no value either.
+## Get Void Prove (Path)
+
+`Prove` in a trie package returns proof which contains all nodes of the longest existing prefix of the key (at least the root node), ending with the node that **proves the absence of the key.**
+
+## Verify Void Prove
+
+`VerifyProof` in a trie package returns `nil, i, nil`. No error, but no value either.
