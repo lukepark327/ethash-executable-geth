@@ -31,7 +31,7 @@ func TestMissingKeyProof(t *testing.T)
 
 * The test explicitly uses a single entry trie and checks for missing keys both before and after the single entry.
 
-## Verify Merkle Proof
+# Verify Merkle Proof
 
 ## VerifyProof
 
