@@ -111,3 +111,7 @@ case nil:
 * `get` at `trie/proof.go` returns key and node.
 
 * `cld.(type) == nil` means that the trie doesn't contain the key.
+
+# Conclusion
+
+**Void Proof:** The above function `VerifyProof` returns `nil, i, nil`. No error, but no value either.
