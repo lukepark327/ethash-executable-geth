@@ -114,10 +114,10 @@ case nil:
 
 # Conclusion
 
-## Get Void Prove (Path)
+## Get Void Proof (Path)
 
 `Prove` in a trie package returns proof which contains all nodes of the longest existing prefix of the key (at least the root node), ending with the node that **proves the absence of the key.**
 
-## Verify Void Prove
+## Verify Void Proof
 
 `VerifyProof` in a trie package returns `nil, i, nil`. No error, but no value either.
