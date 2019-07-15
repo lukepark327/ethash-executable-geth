@@ -1,8 +1,12 @@
 # Construct Merkle Proof
 
-## `func (t *Trie) Prove`
+## Prove
 
 at `trie/proof.go`
+
+```go
+func (t *Trie) Prove
+```
 
 * Prove constructs a merkle proof for key.
 
@@ -15,9 +19,13 @@ at `trie/proof.go`
   * the returned proof contains all nodes of the longest existing prefix of the key (at least the root node),
   * ending with the node that **proves the absence of the key.**
 
-## `func TestMissingKeyProof(t *testing.T)`
+## TestMissingKeyProof
 
 at `trie/proof_test.go`
+
+```go
+func TestMissingKeyProof(t *testing.T)
+```
 
 * Tests that missing keys can also be proven.
 
@@ -25,9 +33,13 @@ at `trie/proof_test.go`
 
 ## Verify Merkle Proof
 
-## `func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader) (value []byte, nodes int, err error)`
+## VerifyProof
 
 at `trie/proof.go`
+
+```go
+func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader) (value []byte, nodes int, err error)
+```
 
 * VerifyProof checks merkle proofs.
 
@@ -75,3 +87,27 @@ func VerifyProof(rootHash common.Hash, key []byte, proofDb ethdb.KeyValueReader)
 	}
 }
 ```
+
+Remark
+
+```go
+wantHash := rootHash
+
+// ...
+
+n, err := decodeNode(wantHash[:], buf)
+
+// ...
+
+keyrest, cld := get(n, key)
+switch cld := cld.(type) {
+case nil:
+	// The trie doesn't contain the key.
+	return nil, i, nil
+``` 
+
+* `decodeNode` at `trie/node.go` parses the RLP encoding of a trie node.
+
+* `get` at `trie/proof.go` returns key and node.
+
+* `cld.(type) == nil` means that the trie doesn't contain the key.
