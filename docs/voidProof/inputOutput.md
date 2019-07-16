@@ -38,7 +38,7 @@ func TestOneElementProof(t *testing.T) {
 
 ## Outputs
 
-```bash
+```go
 (int) 1
 ([][]uint8) (len=1 cap=1) {
     ([]uint8) (len=32 cap=32) {
@@ -100,7 +100,7 @@ func TestMyOwnTestCode(t *testing.T) {
 
 ## Outputs
 
-```bash
+```go
 (int) 1
 ([][]uint8) (len=1 cap=1) {
     ([]uint8) (len=32 cap=32) {
@@ -131,6 +131,7 @@ PASS
 ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.701s
 ```
 
+<!--
 # 🤔 Multiple Elements Proof
 
 at `trie/proof_test.go`,
@@ -165,7 +166,7 @@ func TestMyOwnTestCode(t *testing.T) {
 
 ## Outputs
 
-```bash
+```go
 (int) 4
 ([][]uint8) (len=4 cap=4) {
     ([]uint8) (len=32 cap=32) {
@@ -264,7 +265,7 @@ func TestMyOwnTestCode(t *testing.T) {
 
 ## Outputs
 
-```bash
+```go
 (int) 4
 ([][]uint8) (len=4 cap=4) {
     ([]uint8) (len=32 cap=32) {
@@ -326,38 +327,163 @@ func TestMyOwnTestCode(t *testing.T) {
 PASS
 ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.691s
 ```
-
-# Analysis
-
-## `proofs.Len()`
-
-TBA
-
-<!--
-```
-(int) 1
-```
 -->
 
-## `proofs.Keys()`
+# 😲 Some Trivial Example
 
+* refer to https://github.com/ethereum/wiki/wiki/Patricia-Tree#example-trie
+	* Suppose we want a trie containing four path/value pairs ('do', 'verb'), ('dog', 'puppy'), ('doge', 'coin'), ('horse', 'stallion').
+
+at `trie/proof_test.go`,
+
+```go
+func TestMyOwnTestCode(t *testing.T) {
+	trie := new(Trie)
+	updateString(trie, "do", "verb")
+	updateString(trie, "dog", "puppy")
+	updateString(trie, "doge", "coin")
+	updateString(trie, "horse", "stallion")
+
+	proofs, _ := ethdb.NewMemDatabase()
+	trie.Prove([]byte("doge"), 0, proofs)
+
+	spew.Dump(proofs.Len())
+	spew.Dump(proofs.Keys())
+	spew.Dump(proofs)
+
+	val, err, _ := VerifyProof(trie.Hash(), []byte("doge"), proofs)
+	if err != nil {
+		t.Fatalf("VerifyProof error: %v\nproof hashes: %v", err, proofs.Keys())
+	}
+
+	spew.Dump(val)
+}
 ```
-([][]uint8) (len=1 cap=1) {
+
+## Outputs
+
+```go
+(int) 4
+([][]uint8) (len=4 cap=4) {
     ([]uint8) (len=32 cap=32) {
-        00000000  98 02 1e ec 76 a3 52 d4  21 4e e9 d2 2f 26 70 f3  |....v.R.!N../&p.|
-        00000010  ab e0 1d 58 05 44 12 49  f4 b7 0d da 75 a0 e0 7a  |...X.D.I....u..z|
+        00000000  59 91 bb 8c 65 14 14 8a  29 db 67 6a 14 ac 50 6c  |Y...e...).gj..Pl|
+        00000010  d2 cd 57 75 ac e6 3c 30  a4 fe 45 77 15 e9 ac 84  |..Wu..<0..Ew....|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  bd 3e e5 07 e6 c6 7c fe  fc a9 8f 84 be 47 c1 bb  |.>....|......G..|
+        00000010  c0 09 31 5f ab c4 40 5d  b4 ba 32 19 03 74 57 2a  |..1_..@]..2..tW*|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  94 a9 f9 5b d8 96 98 e4  da 18 12 e0 51 80 53 81  |...[........Q.S.|
+        00000010  3b 4d 5b 87 ca af 6b 3c  6f a5 7e 9e 50 c0 ff 68  |;M[...k<o.~.P..h|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  d4 3b 87 fd cd 42 17 01  3c cc 92 d0 46 62 e1 2d  |.;...B..<...Fb.-|
+        00000010  36 e4 cc 25 dc 69 00 77  cd 82 1a 19 56 fc 3e 36  |6..%.i.w....V.>6|
+    }
+}
+(*ethdb.MemDatabase)(0xc4203a0a80)({
+    db: (map[string][]uint8) (len=4) {
+        (string) (len=32) "\xd4;\x87\xfd\xcdB\x17\x01<̒\xd0Fb\xe1-6\xe4\xcc%\xdci\x00w͂\x1a\x19V\xfc>6": ([]uint8) (len=52 cap=52) {
+            00000000  f3 80 80 80 80 80 80 de  17 dc 80 80 80 80 80 80  |................|
+            00000010  c6 35 84 63 6f 69 6e 80  80 80 80 80 80 80 80 80  |.5.coin.........|
+            00000020  85 70 75 70 70 79 80 80  80 80 80 80 80 80 80 84  |.puppy..........|
+            00000030  76 65 72 62                                       |verb|
+        },
+        (string) (len=32) "Y\x91\xbb\x8ce\x14\x14\x8a)\xdbgj\x14\xacPl\xd2\xcdWu\xac\xe6<0\xa4\xfeEw\x15鬄": ([]uint8) (len=35 cap=35) {
+            00000000  e2 16 a0 bd 3e e5 07 e6  c6 7c fe fc a9 8f 84 be  |....>....|......|
+            00000010  47 c1 bb c0 09 31 5f ab  c4 40 5d b4 ba 32 19 03  |G....1_..@]..2..|
+            00000020  74 57 2a                                          |tW*|
+        },
+        (string) (len=32) "\xbd>\xe5\a\xe6\xc6|\xfe\xfc\xa9\x8f\x84\xbeG\xc1\xbb\xc0\t1_\xab\xc4@]\xb4\xba2\x19\x03tW*": ([]uint8) (len=66 cap=66) {
+            00000000  f8 40 80 80 80 80 a0 94  a9 f9 5b d8 96 98 e4 da  |.@........[.....|
+            00000010  18 12 e0 51 80 53 81 3b  4d 5b 87 ca af 6b 3c 6f  |...Q.S.;M[...k<o|
+            00000020  a5 7e 9e 50 c0 ff 68 80  80 80 cf 85 20 6f 72 73  |.~.P..h..... ors|
+            00000030  65 88 73 74 61 6c 6c 69  6f 6e 80 80 80 80 80 80  |e.stallion......|
+            00000040  80 80                                             |..|
+        },
+        (string) (len=32) "\x94\xa9\xf9[ؖ\x98\xe4\xda\x18\x12\xe0Q\x80S\x81;M[\x87ʯk<o\xa5~\x9eP\xc0\xffh": ([]uint8) (len=37 cap=37) {
+            00000000  e4 82 00 6f a0 d4 3b 87  fd cd 42 17 01 3c cc 92  |...o..;...B..<..|
+            00000010  d0 46 62 e1 2d 36 e4 cc  25 dc 69 00 77 cd 82 1a  |.Fb.-6..%.i.w...|
+            00000020  19 56 fc 3e 36                                    |.V.>6|
+        }
+    },
+    lock: (sync.RWMutex) {
+        w: (sync.Mutex) {
+            state: (int32) 0,
+            sema: (uint32) 0
+        },
+        writerSem: (uint32) 0,
+        readerSem: (uint32) 0,
+        readerCount: (int32) 0,
+        readerWait: (int32) 0
+    }
+})
+([]uint8) (len=4 cap=8) {
+    00000000  63 6f 69 6e                                       |coin|
+}
+PASS
+ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.697s
+```
+
+## Analysis
+
+### `proofs.Len()`
+
+```go
+(int) 4
+```
+
+### `proofs.Keys()`
+
+```go
+([][]uint8) (len=4 cap=4) {
+    ([]uint8) (len=32 cap=32) {
+        00000000  59 91 bb 8c 65 14 14 8a  29 db 67 6a 14 ac 50 6c  |Y...e...).gj..Pl|
+        00000010  d2 cd 57 75 ac e6 3c 30  a4 fe 45 77 15 e9 ac 84  |..Wu..<0..Ew....|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  bd 3e e5 07 e6 c6 7c fe  fc a9 8f 84 be 47 c1 bb  |.>....|......G..|
+        00000010  c0 09 31 5f ab c4 40 5d  b4 ba 32 19 03 74 57 2a  |..1_..@]..2..tW*|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  94 a9 f9 5b d8 96 98 e4  da 18 12 e0 51 80 53 81  |...[........Q.S.|
+        00000010  3b 4d 5b 87 ca af 6b 3c  6f a5 7e 9e 50 c0 ff 68  |;M[...k<o.~.P..h|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  d4 3b 87 fd cd 42 17 01  3c cc 92 d0 46 62 e1 2d  |.;...B..<...Fb.-|
+        00000010  36 e4 cc 25 dc 69 00 77  cd 82 1a 19 56 fc 3e 36  |6..%.i.w....V.>6|
     }
 }
 ```
 
-## `proofs`
+### `proofs`
 
-```
-(*ethdb.MemDatabase)(0xc42033af00)({
-    db: (map[string][]uint8) (len=1) {
-        (string) (len=32) "\x98\x02\x1e\xecv\xa3R\xd4!N\xe9\xd2/&p\xf3\xab\xe0\x1dX\x05D\x12I\xf4\xb7\r\xdau\xa0\xe0z": ([]uint8) (
-len=12 cap=12) {
-            00000000  cb 84 20 6b 65 79 85 76  61 6c 75 65              |.. key.value|
+```go
+(*ethdb.MemDatabase)(0xc4203a0a80)({
+    db: (map[string][]uint8) (len=4) {
+        (string) (len=32) "\xd4;\x87\xfd\xcdB\x17\x01<̒\xd0Fb\xe1-6\xe4\xcc%\xdci\x00w͂\x1a\x19V\xfc>6": ([]uint8) (len=52 cap=52) {
+            00000000  f3 80 80 80 80 80 80 de  17 dc 80 80 80 80 80 80  |................|
+            00000010  c6 35 84 63 6f 69 6e 80  80 80 80 80 80 80 80 80  |.5.coin.........|
+            00000020  85 70 75 70 70 79 80 80  80 80 80 80 80 80 80 84  |.puppy..........|
+            00000030  76 65 72 62                                       |verb|
+        },
+        (string) (len=32) "Y\x91\xbb\x8ce\x14\x14\x8a)\xdbgj\x14\xacPl\xd2\xcdWu\xac\xe6<0\xa4\xfeEw\x15鬄": ([]uint8) (len=35 cap=35) {
+            00000000  e2 16 a0 bd 3e e5 07 e6  c6 7c fe fc a9 8f 84 be  |....>....|......|
+            00000010  47 c1 bb c0 09 31 5f ab  c4 40 5d b4 ba 32 19 03  |G....1_..@]..2..|
+            00000020  74 57 2a                                          |tW*|
+        },
+        (string) (len=32) "\xbd>\xe5\a\xe6\xc6|\xfe\xfc\xa9\x8f\x84\xbeG\xc1\xbb\xc0\t1_\xab\xc4@]\xb4\xba2\x19\x03tW*": ([]uint8) (len=66 cap=66) {
+            00000000  f8 40 80 80 80 80 a0 94  a9 f9 5b d8 96 98 e4 da  |.@........[.....|
+            00000010  18 12 e0 51 80 53 81 3b  4d 5b 87 ca af 6b 3c 6f  |...Q.S.;M[...k<o|
+            00000020  a5 7e 9e 50 c0 ff 68 80  80 80 cf 85 20 6f 72 73  |.~.P..h..... ors|
+            00000030  65 88 73 74 61 6c 6c 69  6f 6e 80 80 80 80 80 80  |e.stallion......|
+            00000040  80 80                                             |..|
+        },
+        (string) (len=32) "\x94\xa9\xf9[ؖ\x98\xe4\xda\x18\x12\xe0Q\x80S\x81;M[\x87ʯk<o\xa5~\x9eP\xc0\xffh": ([]uint8) (len=37 cap=37) {
+            00000000  e4 82 00 6f a0 d4 3b 87  fd cd 42 17 01 3c cc 92  |...o..;...B..<..|
+            00000010  d0 46 62 e1 2d 36 e4 cc  25 dc 69 00 77 cd 82 1a  |.Fb.-6..%.i.w...|
+            00000020  19 56 fc 3e 36                                    |.V.>6|
         }
     },
     lock: (sync.RWMutex) {
@@ -375,6 +501,8 @@ len=12 cap=12) {
 
 ## `val`
 
-```
-([]uint8) <nil>
+```go
+([]uint8) (len=4 cap=8) {
+    00000000  63 6f 69 6e                                       |coin|
+}
 ```
