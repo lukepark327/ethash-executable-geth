@@ -135,9 +135,13 @@ ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.701s
 
 ## `proofs.Len()`
 
+TBA
+
+<!--
 ```
 (int) 1
 ```
+-->
 
 ## `proofs.Keys()`
 
