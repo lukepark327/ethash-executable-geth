@@ -8,7 +8,7 @@
 
 ```bash
 $ cd trie
-$ go test
+$ go test -run <NameOfTest>
 ```
 
 <!--
@@ -576,50 +576,8 @@ Trivial.
 
 ### `proofs`
 
-```go
-(*ethdb.MemDatabase)(0xc4203a0a80)({
-    db: (map[string][]uint8) (len=4) {
-        (string) (len=32) "\xd4;\x87\xfd\xcdB\x17\x01<̒\xd0Fb\xe1-6\xe4\xcc%\xdci\x00w͂\x1a\x19V\xfc>6": ([]uint8) (len=52 cap=52) {
-            00000000  f3 80 80 80 80 80 80 de  17 dc 80 80 80 80 80 80  |................|
-            00000010  c6 35 84 63 6f 69 6e 80  80 80 80 80 80 80 80 80  |.5.coin.........|
-            00000020  85 70 75 70 70 79 80 80  80 80 80 80 80 80 80 84  |.puppy..........|
-            00000030  76 65 72 62                                       |verb|
-        },
-        (string) (len=32) "Y\x91\xbb\x8ce\x14\x14\x8a)\xdbgj\x14\xacPl\xd2\xcdWu\xac\xe6<0\xa4\xfeEw\x15鬄": ([]uint8) (len=35 cap=35) {
-            00000000  e2 16 a0 bd 3e e5 07 e6  c6 7c fe fc a9 8f 84 be  |....>....|......|
-            00000010  47 c1 bb c0 09 31 5f ab  c4 40 5d b4 ba 32 19 03  |G....1_..@]..2..|
-            00000020  74 57 2a                                          |tW*|
-        },
-        (string) (len=32) "\xbd>\xe5\a\xe6\xc6|\xfe\xfc\xa9\x8f\x84\xbeG\xc1\xbb\xc0\t1_\xab\xc4@]\xb4\xba2\x19\x03tW*": ([]uint8) (len=66 cap=66) {
-            00000000  f8 40 80 80 80 80 a0 94  a9 f9 5b d8 96 98 e4 da  |.@........[.....|
-            00000010  18 12 e0 51 80 53 81 3b  4d 5b 87 ca af 6b 3c 6f  |...Q.S.;M[...k<o|
-            00000020  a5 7e 9e 50 c0 ff 68 80  80 80 cf 85 20 6f 72 73  |.~.P..h..... ors|
-            00000030  65 88 73 74 61 6c 6c 69  6f 6e 80 80 80 80 80 80  |e.stallion......|
-            00000040  80 80                                             |..|
-        },
-        (string) (len=32) "\x94\xa9\xf9[ؖ\x98\xe4\xda\x18\x12\xe0Q\x80S\x81;M[\x87ʯk<o\xa5~\x9eP\xc0\xffh": ([]uint8) (len=37 cap=37) {
-            00000000  e4 82 00 6f a0 d4 3b 87  fd cd 42 17 01 3c cc 92  |...o..;...B..<..|
-            00000010  d0 46 62 e1 2d 36 e4 cc  25 dc 69 00 77 cd 82 1a  |.Fb.-6..%.i.w...|
-            00000020  19 56 fc 3e 36                                    |.V.>6|
-        }
-    },
-    lock: (sync.RWMutex) {
-        w: (sync.Mutex) {
-            state: (int32) 0,
-            sema: (uint32) 0
-        },
-        writerSem: (uint32) 0,
-        readerSem: (uint32) 0,
-        readerCount: (int32) 0,
-        readerWait: (int32) 0
-    }
-})
-```
+TBA
 
 ## `val`
 
-```go
-([]uint8) (len=4 cap=8) {
-    00000000  63 6f 69 6e                                       |coin|
-}
-```
+TBA
