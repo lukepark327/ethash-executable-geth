@@ -11,6 +11,7 @@ $ cd trie
 $ go test
 ```
 
+<!--
 # Single Element Proof
 
 at `trie/proof_test.go`,
@@ -130,6 +131,7 @@ len=12 cap=12) {
 PASS
 ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.701s
 ```
+-->
 
 <!--
 # 🤔 Multiple Elements Proof
