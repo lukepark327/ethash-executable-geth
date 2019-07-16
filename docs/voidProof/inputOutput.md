@@ -131,7 +131,7 @@ PASS
 ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.701s
 ```
 
-# Multiple Elements Void Proof
+# 🤔 Multiple Elements Void Proof
 
 at `trie/proof_test.go`,
 
