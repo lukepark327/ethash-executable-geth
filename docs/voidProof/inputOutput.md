@@ -131,6 +131,105 @@ PASS
 ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.701s
 ```
 
+# 🤔 Multiple Elements Proof
+
+at `trie/proof_test.go`,
+
+```go
+func TestMyOwnTestCode(t *testing.T) {
+	trie := new(Trie)
+	updateString(trie, "key", "value")
+	updateString(trie, "keccak", "sha3")
+	updateString(trie, "k1", "v1")
+	updateString(trie, "k2", "v2")
+	updateString(trie, "k3", "v3")
+	updateString(trie, "k4", "v4")
+	updateString(trie, "k5", "v5")
+	updateString(trie, "tmp", "blahblah")
+
+	proofs, _ := ethdb.NewMemDatabase()
+	trie.Prove([]byte("k2"), 0, proofs)
+
+	spew.Dump(proofs.Len())
+	spew.Dump(proofs.Keys())
+	spew.Dump(proofs)
+
+	val, err, _ := VerifyProof(trie.Hash(), []byte("k2"), proofs)
+	if err != nil {
+		t.Fatalf("VerifyProof error: %v\nproof hashes: %v", err, proofs.Keys())
+	}
+
+	spew.Dump(val)
+}
+```
+
+## Outputs
+
+```bash
+(int) 4
+([][]uint8) (len=4 cap=4) {
+    ([]uint8) (len=32 cap=32) {
+        00000000  52 8d 52 cb 60 bf 19 05  af f5 a0 5a b8 bb 95 67  |R.R.`......Z...g|
+        00000010  4d 15 44 10 5c be 85 96  7b da eb 39 ee 22 2e bd  |M.D.\...{..9."..|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  6d d0 2b 05 08 64 b7 72  a7 bf e4 66 95 ff aa 60  |m.+..d.r...f...`|
+        00000010  ff 9b b7 3f 99 66 26 c3  84 01 27 16 3d bb 9b 36  |...?.f&...'.=..6|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  01 70 26 65 ba 59 2f f3  ae 04 f6 52 c8 31 27 55  |.p&e.Y/....R.1'U|
+        00000010  42 9f 23 e1 66 0d 86 80  e4 ee 03 a5 af f7 5e 7d  |B.#.f.........^}|
+    },
+    ([]uint8) (len=32 cap=32) {
+        00000000  49 c4 a7 7f b3 d9 4a 36  ba 6e 33 77 45 77 01 82  |I.....J6.n3wEw..|
+        00000010  22 95 40 83 11 32 cc 4e  46 e2 5b a5 c4 ea 3e 29  |".@..2.NF.[...>)|
+    }
+}
+(*ethdb.MemDatabase)(0xc42031e440)({
+    db: (map[string][]uint8) (len=4) {
+        (string) (len=32) "Iħ\u007f\xb3\xd9J6\xban3wEw\x01\x82\"\x95@\x83\x112\xccNF\xe2[\xa5\xc4\xea>)": ([]uint8) (len=35 cap=35) {
+            00000000  e2 1b a0 52 8d 52 cb 60  bf 19 05 af f5 a0 5a b8  |...R.R.`......Z.|
+            00000010  bb 95 67 4d 15 44 10 5c  be 85 96 7b da eb 39 ee  |..gM.D.\...{..9.|
+            00000020  22 2e bd                                          |"..|
+        },
+        (string) (len=32) "R\x8dR\xcb`\xbf\x19\x05\xaf\xf5\xa0Z\xb8\xbb\x95gM\x15D\x10\\\xbe\x85\x96{\xda\xeb9\xee\".\xbd": ([]uint8) (len=83 cap=83) {
+            00000000  f8 51 80 80 80 a0 6d d0  2b 05 08 64 b7 72 a7 bf  |.Q....m.+..d.r..|
+            00000010  e4 66 95 ff aa 60 ff 9b  b7 3f 99 66 26 c3 84 01  |.f...`...?.f&...|
+            00000020  27 16 3d bb 9b 36 80 80  a0 39 08 c1 b6 37 10 38  |'.=..6...9...7.8|
+            00000030  9a 63 e1 e5 c4 a8 61 8f  ce ea 4c 1a 15 ae fd c7  |.c....a...L.....|
+            00000040  ef b4 35 40 41 e8 96 6a  3e 80 80 80 80 80 80 80  |..5@A..j>.......|
+            00000050  80 80 80                                          |...|
+        },
+        (string) (len=32) "m\xd0+\x05\bd\xb7r\xa7\xbf\xe4f\x95\xff\xaa`\xff\x9b\xb7?\x99f&Ä\x01'\x16=\xbb\x9b6": ([]uint8) (len=38 cap=38) {
+            00000000  e5 80 c4 20 82 76 31 c4  20 82 76 32 c4 20 82 76  |... .v1. .v2. .v|
+            00000010  33 c4 20 82 76 34 c4 20  82 76 35 80 80 80 80 80  |3. .v4. .v5.....|
+            00000020  80 80 80 80 80 80                                 |......|
+        },
+        (string) (len=32) "\x01p&e\xbaY/\xf3\xae\x04\xf6R\xc81'UB\x9f#\xe1f\r\x86\x80\xe4\xee\x03\xa5\xaf\xf7^}": ([]uint8) (len=64 cap=64) {
+            00000000  f8 3e 80 80 80 80 80 80  a0 49 c4 a7 7f b3 d9 4a  |.>.......I.....J|
+            00000010  36 ba 6e 33 77 45 77 01  82 22 95 40 83 11 32 cc  |6.n3wEw..".@..2.|
+            00000020  4e 46 e2 5b a5 c4 ea 3e  29 cd 83 34 6d 70 88 62  |NF.[...>)..4mp.b|
+            00000030  6c 61 68 62 6c 61 68 80  80 80 80 80 80 80 80 80  |lahblah.........|
+        }
+    },
+    lock: (sync.RWMutex) {
+        w: (sync.Mutex) {
+            state: (int32) 0,
+            sema: (uint32) 0
+        },
+        writerSem: (uint32) 0,
+        readerSem: (uint32) 0,
+        readerCount: (int32) 0,
+        readerWait: (int32) 0
+    }
+})
+([]uint8) (len=2 cap=8) {
+    00000000  76 32                                             |v2|
+}
+PASS
+ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.686s
+```
+
 # 🤔 Multiple Elements Void Proof
 
 at `trie/proof_test.go`,
