@@ -561,10 +561,134 @@ ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.732s
 }
 ```
 
-1. rootHash = `<59 91 bb 8c 65 14 14 8a 29 db 67 6a 14 ac 50 6c d2 cd 57 75 ac e6 3c 30 a4 fe 45 77 15 e9 ac 84>`
-2. 
-3.
-4.
+Each hash is been able to calculate by:
+
+**1. rootHash**
+
+```go
+n:
+{16: <bd3ee507e6c67cfefca98f84be47c1bbc009315fabc4405db4ba32190374572a> } 
+
+enc(rlped):
+[226 22 160 189 62 229 7 230 198 124 254 252 169 143 132 190 71 193 187 192 9 49 95 171 196 64 93 180 186 50 25 3 116 87 42]
+
+hash:
+<5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84> 
+```
+
+which means `rootHash: [ <16>, hashA ]`.
+
+**2. hashA**
+
+```go
+n:
+[
+  0:  1:  2:  3:  4: <94a9f95bd89698e4da1812e0518053813b4d5b87caaf6b3c6fa57e9e50c0ff68> 5:  6:  7:  8: {206f727365: 7374616c6c696f6e } 9:  a:  b:  c:  d:  e:  f:  [17]:  
+] 
+
+enc(rlped):
+[248 64 128 128 128 128 160 148 169 249 91 216 150 152 228 218 24 18 224 81 128 83 129 59 77 91 135 202 175 107 60 111 165 126 158 80 192 255 104 128 128 128 207 133 32 111 114 115 101 136 115 116 97 108 108 105 111 110 128 128 128 128 128 128 128 128]
+
+hash:
+<bd3ee507e6c67cfefca98f84be47c1bbc009315fabc4405db4ba32190374572a> 
+```
+
+which means `hashA:    [ <>, <>, <>, <>, hashB, <>, <>, <>, hashC, <>, <>, <>, <>, <>, <>, <>, <> ]`.
+
+**3. hashB**
+
+```go
+n:
+{006f: <d43b87fdcd4217013ccc92d04662e12d36e4cc25dc690077cd821a1956fc3e36> } 
+
+enc(rlped):
+[228 130 0 111 160 212 59 135 253 205 66 23 1 60 204 146 208 70 98 225 45 54 228 204 37 220 105 0 119 205 130 26 25 86 252 62 54]
+
+hash:
+<94a9f95bd89698e4da1812e0518053813b4d5b87caaf6b3c6fa57e9e50c0ff68> 
+```
+
+which means `hashB:    [ <00 6f>, hashD ]`
+
+**4.hashD & hashE & hashF & hashG**
+
+```go
+n:
+[
+  0:  1:  2:  3:  4:  5:  6: {17: [
+      0:  1:  2:  3:  4:  5:  6: {35: 636f696e } 7:  8:  9:  a:  b:  c:  d:  e:  f:  [17]: 7075707079 
+    ] } 7:  8:  9:  a:  b:  c:  d:  e:  f:  [17]: 76657262 
+] 
+
+enc(rlped):
+[243 128 128 128 128 128 128 222 23 220 128 128 128 128 128 128 198 53 132 99 111 105 110 128 128 128 128 128 128 128 128 128 133 112 117 112 112 121 128 128 128 128 128 128 128 128 128 132 118 101 114 98]
+
+hash:
+<d43b87fdcd4217013ccc92d04662e12d36e4cc25dc690077cd821a1956fc3e36> 
+```
+
+which means `hashD & hashE & hashF & hashG` where `hashG` contains a target value `636f696e (coin)`.
+
+* Adding Printing Features to `Prove`
+
+```go
+func (t *Trie) Prove(key []byte, fromLevel uint, proofDb DatabaseWriter) error {
+	// Collect all nodes on the path to key.
+	key = keybytesToHex(key)
+	nodes := []node{}
+	tn := t.root
+	for len(key) > 0 && tn != nil {
+		switch n := tn.(type) {
+		case *shortNode:
+			if len(key) < len(n.Key) || !bytes.Equal(n.Key, key[:len(n.Key)]) {
+				// The trie doesn't contain the key.
+				tn = nil
+			} else {
+				tn = n.Val
+				key = key[len(n.Key):]
+			}
+			nodes = append(nodes, n)
+		case *fullNode:
+			tn = n.Children[key[0]]
+			key = key[1:]
+			nodes = append(nodes, n)
+		case hashNode:
+			var err error
+			tn, err = t.resolveHash(n, nil)
+			if err != nil {
+				log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
+				return err
+			}
+		default:
+			panic(fmt.Sprintf("%T: invalid node: %v", tn, tn))
+		}
+	}
+	hasher := newHasher(0, 0)
+	for i, n := range nodes {
+		// Don't bother checking for errors here since hasher panics
+		// if encoding doesn't work and we're not writing to any database.
+		n, _, _ = hasher.hashChildren(n, nil)
+		hn, _ := hasher.store(n, nil, false)
+		if hash, ok := hn.(hashNode); ok || i == 0 {
+			// If the node's database encoding is a hash (or is the
+			// root node), it becomes a proof element.
+			if fromLevel > 0 {
+				fromLevel--
+			} else {
+				enc, _ := rlp.EncodeToBytes(n)
+				if !ok {
+					hash = crypto.Keccak256(enc)
+				}
+				proofDb.Put(hash, enc)
+				fmt.Println("n			:", n)
+				fmt.Println("enc(rlped)	:", enc)
+				fmt.Println("hash		:", hash)
+			}
+		}
+	}
+	return nil
+}
+```
 
 ### `proofs.Len()`
 
@@ -576,7 +700,45 @@ Trivial.
 
 ### `proofs`
 
-TBA
+```go
+(*ethdb.MemDatabase)(0xc4203a0a80)({
+    db: (map[string][]uint8) (len=4) {
+        (string) (len=32) "\xd4;\x87\xfd\xcdB\x17\x01<̒\xd0Fb\xe1-6\xe4\xcc%\xdci\x00w͂\x1a\x19V\xfc>6": ([]uint8) (len=52 cap=52) {
+            00000000  f3 80 80 80 80 80 80 de  17 dc 80 80 80 80 80 80  |................|
+            00000010  c6 35 84 63 6f 69 6e 80  80 80 80 80 80 80 80 80  |.5.coin.........|
+            00000020  85 70 75 70 70 79 80 80  80 80 80 80 80 80 80 84  |.puppy..........|
+            00000030  76 65 72 62                                       |verb|
+        },
+        (string) (len=32) "Y\x91\xbb\x8ce\x14\x14\x8a)\xdbgj\x14\xacPl\xd2\xcdWu\xac\xe6<0\xa4\xfeEw\x15鬄": ([]uint8) (len=35 cap=35) {
+            00000000  e2 16 a0 bd 3e e5 07 e6  c6 7c fe fc a9 8f 84 be  |....>....|......|
+            00000010  47 c1 bb c0 09 31 5f ab  c4 40 5d b4 ba 32 19 03  |G....1_..@]..2..|
+            00000020  74 57 2a                                          |tW*|
+        },
+        (string) (len=32) "\xbd>\xe5\a\xe6\xc6|\xfe\xfc\xa9\x8f\x84\xbeG\xc1\xbb\xc0\t1_\xab\xc4@]\xb4\xba2\x19\x03tW*": ([]uint8) (len=66 cap=66) {
+            00000000  f8 40 80 80 80 80 a0 94  a9 f9 5b d8 96 98 e4 da  |.@........[.....|
+            00000010  18 12 e0 51 80 53 81 3b  4d 5b 87 ca af 6b 3c 6f  |...Q.S.;M[...k<o|
+            00000020  a5 7e 9e 50 c0 ff 68 80  80 80 cf 85 20 6f 72 73  |.~.P..h..... ors|
+            00000030  65 88 73 74 61 6c 6c 69  6f 6e 80 80 80 80 80 80  |e.stallion......|
+            00000040  80 80                                             |..|
+        },
+        (string) (len=32) "\x94\xa9\xf9[ؖ\x98\xe4\xda\x18\x12\xe0Q\x80S\x81;M[\x87ʯk<o\xa5~\x9eP\xc0\xffh": ([]uint8) (len=37 cap=37) {
+            00000000  e4 82 00 6f a0 d4 3b 87  fd cd 42 17 01 3c cc 92  |...o..;...B..<..|
+            00000010  d0 46 62 e1 2d 36 e4 cc  25 dc 69 00 77 cd 82 1a  |.Fb.-6..%.i.w...|
+            00000020  19 56 fc 3e 36                                    |.V.>6|
+        }
+    },
+    lock: (sync.RWMutex) {
+        w: (sync.Mutex) {
+            state: (int32) 0,
+            sema: (uint32) 0
+        },
+        writerSem: (uint32) 0,
+        readerSem: (uint32) 0,
+        readerCount: (int32) 0,
+        readerWait: (int32) 0
+    }
+})
+```
 
 ## `val`
 
