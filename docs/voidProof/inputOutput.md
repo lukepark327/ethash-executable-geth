@@ -17,19 +17,21 @@ func TestMyOwnTestCode(t *testing.T) {
 
 	proofs, _ := ethdb.NewMemDatabase()
   
-  // Void Proof
+	// Void Proof
 	trie.Prove([]byte("k"), 0, proofs)
-
+	
+	// Print
 	spew.Dump(proofs.Len())
 	spew.Dump(proofs.Keys())
 	spew.Dump(proofs)
 
-  // Verifying Void Proof
+	// Verifying Void Proof
 	val, err, _ := VerifyProof(trie.Hash(), []byte("k"), proofs)
 	if err != nil {
 		t.Fatalf("VerifyProof error: %v\nproof hashes: %v", err, proofs.Keys())
 	}
-
+	
+	// Print
 	spew.Dump(val)
 }
 ```
