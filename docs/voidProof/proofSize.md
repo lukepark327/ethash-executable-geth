@@ -12,9 +12,9 @@
     
     * The codeHash is the hash of the EVM (Ethereum Virtual Machine) code of this account. For contract accounts, this is the code that gets hashed and stored as the codeHash. For externally owned accounts, the codeHash field is the hash of the empty string.
 
-## Calculate Size of State Trie
+### Details
 
-Be able to see an `Account` structure at `core/state/state_object.go`:
+See an `Account` structure at `core/state/state_object.go`:
 
 ```go
 // Account is the Ethereum consensus representation of accounts.
@@ -80,6 +80,17 @@ type stateObject struct {
 	onDirty   func(addr common.Address) // Callback method to mark a state object newly dirty
 }
 ```
+
+### Trie Structure
+
+![MPT](https://miro.medium.com/max/5040/1*ZbdfL2TWmxj4b1fCuN6BIQ.png)
+
+A node in a Merkle Patricia trie is one of the following:
+
+1. `NULL` (represented as the empty string)
+2. `branch` A 17-item node `[ v0 ... v15, vt ]`
+3. `leaf` A 2-item node `[ encodedPath, value ]`
+4. `extension` A 2-item node `[ encodedPath, key ]`
 
 # References
 
