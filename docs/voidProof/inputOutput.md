@@ -8,9 +8,10 @@
 
 ```bash
 $ cd trie
-$ go test
+$ go test -run <NameOfTest>
 ```
 
+<!--
 # Single Element Proof
 
 at `trie/proof_test.go`,
@@ -130,6 +131,7 @@ len=12 cap=12) {
 PASS
 ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.701s
 ```
+-->
 
 <!--
 # 🤔 Multiple Elements Proof
@@ -329,7 +331,7 @@ ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.691s
 ```
 -->
 
-# 😲 Some Trivial Example
+# 😲 Trivial Example
 
 * refer to https://github.com/ethereum/wiki/wiki/Patricia-Tree#example-trie
 	* Suppose we want a trie containing four path/value pairs
@@ -536,7 +538,7 @@ PASS
 ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.732s
 ```
 
-### `proofs.Keys()`
+### Elements of `proof`
 
 ```go
 ([][]uint8) (len=4 cap=4) {
@@ -559,30 +561,168 @@ ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.732s
 }
 ```
 
-1. rootHash = `<59 91 bb 8c 65 14 14 8a 29 db 67 6a 14 ac 50 6c d2 cd 57 75 ac e6 3c 30 a4 fe 45 77 15 e9 ac 84>`
-2. 
-3.
-4.
+Each hash is been able to calculate by:
 
-### `proofs.Len()`
+**1. rootHash**
 
 ```go
-(int) 4
+n:
+{16: <bd3ee507e6c67cfefca98f84be47c1bbc009315fabc4405db4ba32190374572a> } 
+
+enc(rlped):
+[226 22 160 189 62 229 7 230 198 124 254 252 169 143 132 190 71 193 187 192 9 49 95 171 196 64 93 180 186 50 25 3 116 87 42]
+
+hash:
+<5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84> 
 ```
 
-Trivial.
+which means `rootHash: [ <16>, hashA ]`.
 
-### `proofs`
+**2. hashA**
 
 ```go
-(*ethdb.MemDatabase)(0xc4203a0a80)({
+n:
+[
+  0:  1:  2:  3:  4: <94a9f95bd89698e4da1812e0518053813b4d5b87caaf6b3c6fa57e9e50c0ff68> 5:  6:  7:  8: {206f727365: 7374616c6c696f6e } 9:  a:  b:  c:  d:  e:  f:  [17]:  
+] 
+
+enc(rlped):
+[248 64 128 128 128 128 160 148 169 249 91 216 150 152 228 218 24 18 224 81 128 83 129 59 77 91 135 202 175 107 60 111 165 126 158 80 192 255 104 128 128 128 207 133 32 111 114 115 101 136 115 116 97 108 108 105 111 110 128 128 128 128 128 128 128 128]
+
+hash:
+<bd3ee507e6c67cfefca98f84be47c1bbc009315fabc4405db4ba32190374572a> 
+```
+
+which means `hashA:    [ <>, <>, <>, <>, hashB, <>, <>, <>, hashC, <>, <>, <>, <>, <>, <>, <>, <> ]`.
+
+**3. hashB**
+
+```go
+n:
+{006f: <d43b87fdcd4217013ccc92d04662e12d36e4cc25dc690077cd821a1956fc3e36> } 
+
+enc(rlped):
+[228 130 0 111 160 212 59 135 253 205 66 23 1 60 204 146 208 70 98 225 45 54 228 204 37 220 105 0 119 205 130 26 25 86 252 62 54]
+
+hash:
+<94a9f95bd89698e4da1812e0518053813b4d5b87caaf6b3c6fa57e9e50c0ff68> 
+```
+
+which means `hashB:    [ <00 6f>, hashD ]`
+
+**4.hashD & hashE & hashF & hashG**
+
+```go
+n:
+[
+  0:  1:  2:  3:  4:  5:  6: {17: [
+      0:  1:  2:  3:  4:  5:  6: {35: 636f696e } 7:  8:  9:  a:  b:  c:  d:  e:  f:  [17]: 7075707079 
+    ] } 7:  8:  9:  a:  b:  c:  d:  e:  f:  [17]: 76657262 
+] 
+
+enc(rlped):
+[243 128 128 128 128 128 128 222 23 220 128 128 128 128 128 128 198 53 132 99 111 105 110 128 128 128 128 128 128 128 128 128 133 112 117 112 112 121 128 128 128 128 128 128 128 128 128 132 118 101 114 98]
+
+hash:
+<d43b87fdcd4217013ccc92d04662e12d36e4cc25dc690077cd821a1956fc3e36> 
+```
+
+which means `hashD & hashE & hashF & hashG` where `hashG` contains a target value `636f696e (coin)`.
+
+* Adding Printing Features to `Prove`
+
+```go
+func (t *Trie) Prove(key []byte, fromLevel uint, proofDb DatabaseWriter) error {
+	// Collect all nodes on the path to key.
+	key = keybytesToHex(key)
+	nodes := []node{}
+	tn := t.root
+	for len(key) > 0 && tn != nil {
+		switch n := tn.(type) {
+		case *shortNode:
+			if len(key) < len(n.Key) || !bytes.Equal(n.Key, key[:len(n.Key)]) {
+				// The trie doesn't contain the key.
+				tn = nil
+			} else {
+				tn = n.Val
+				key = key[len(n.Key):]
+			}
+			nodes = append(nodes, n)
+		case *fullNode:
+			tn = n.Children[key[0]]
+			key = key[1:]
+			nodes = append(nodes, n)
+		case hashNode:
+			var err error
+			tn, err = t.resolveHash(n, nil)
+			if err != nil {
+				log.Error(fmt.Sprintf("Unhandled trie error: %v", err))
+				return err
+			}
+		default:
+			panic(fmt.Sprintf("%T: invalid node: %v", tn, tn))
+		}
+	}
+	hasher := newHasher(0, 0)
+	for i, n := range nodes {
+		// Don't bother checking for errors here since hasher panics
+		// if encoding doesn't work and we're not writing to any database.
+		n, _, _ = hasher.hashChildren(n, nil)
+		hn, _ := hasher.store(n, nil, false)
+		if hash, ok := hn.(hashNode); ok || i == 0 {
+			// If the node's database encoding is a hash (or is the
+			// root node), it becomes a proof element.
+			if fromLevel > 0 {
+				fromLevel--
+			} else {
+				enc, _ := rlp.EncodeToBytes(n)
+				if !ok {
+					hash = crypto.Keccak256(enc)
+				}
+				proofDb.Put(hash, enc)
+				fmt.Println("n			:", n)
+				fmt.Println("enc(rlped)	:", enc)
+				fmt.Println("hash		:", hash)
+			}
+		}
+	}
+	return nil
+}
+```
+
+# 🤔 Void Proof of Trivial Example
+
+at `trie/proof_test.go`,
+
+```go
+func TestMyOwnTestCode(t *testing.T) {
+	trie := new(Trie)
+	updateString(trie, "do", "verb")
+	updateString(trie, "dog", "puppy")
+	updateString(trie, "doge", "coin")
+	updateString(trie, "horse", "stallion")
+
+	proofs, _ := ethdb.NewMemDatabase()
+	trie.Prove([]byte("doggy"), 0, proofs)
+
+	// spew.Dump(proofs.Len())
+	// spew.Dump(proofs.Keys())
+	spew.Dump(proofs)
+
+	val, err, _ := VerifyProof(trie.Hash(), []byte("doggy"), proofs)
+	if err != nil {
+		t.Fatalf("VerifyProof error: %v\nproof hashes: %v", err, proofs.Keys())
+	}
+
+	spew.Dump(val)
+}
+```
+
+## Outputs
+
+```go
+(*ethdb.MemDatabase)(0xc4200f2b20)({
     db: (map[string][]uint8) (len=4) {
-        (string) (len=32) "\xd4;\x87\xfd\xcdB\x17\x01<̒\xd0Fb\xe1-6\xe4\xcc%\xdci\x00w͂\x1a\x19V\xfc>6": ([]uint8) (len=52 cap=52) {
-            00000000  f3 80 80 80 80 80 80 de  17 dc 80 80 80 80 80 80  |................|
-            00000010  c6 35 84 63 6f 69 6e 80  80 80 80 80 80 80 80 80  |.5.coin.........|
-            00000020  85 70 75 70 70 79 80 80  80 80 80 80 80 80 80 84  |.puppy..........|
-            00000030  76 65 72 62                                       |verb|
-        },
         (string) (len=32) "Y\x91\xbb\x8ce\x14\x14\x8a)\xdbgj\x14\xacPl\xd2\xcdWu\xac\xe6<0\xa4\xfeEw\x15鬄": ([]uint8) (len=35 cap=35) {
             00000000  e2 16 a0 bd 3e e5 07 e6  c6 7c fe fc a9 8f 84 be  |....>....|......|
             00000010  47 c1 bb c0 09 31 5f ab  c4 40 5d b4 ba 32 19 03  |G....1_..@]..2..|
@@ -599,6 +739,12 @@ Trivial.
             00000000  e4 82 00 6f a0 d4 3b 87  fd cd 42 17 01 3c cc 92  |...o..;...B..<..|
             00000010  d0 46 62 e1 2d 36 e4 cc  25 dc 69 00 77 cd 82 1a  |.Fb.-6..%.i.w...|
             00000020  19 56 fc 3e 36                                    |.V.>6|
+        },
+        (string) (len=32) "\xd4;\x87\xfd\xcdB\x17\x01<̒\xd0Fb\xe1-6\xe4\xcc%\xdci\x00w͂\x1a\x19V\xfc>6": ([]uint8) (len=52 cap=52) {
+            00000000  f3 80 80 80 80 80 80 de  17 dc 80 80 80 80 80 80  |................|
+            00000010  c6 35 84 63 6f 69 6e 80  80 80 80 80 80 80 80 80  |.5.coin.........|
+            00000020  85 70 75 70 70 79 80 80  80 80 80 80 80 80 80 84  |.puppy..........|
+            00000030  76 65 72 62                                       |verb|
         }
     },
     lock: (sync.RWMutex) {
@@ -612,12 +758,99 @@ Trivial.
         readerWait: (int32) 0
     }
 })
+([]uint8) <nil>
+PASS
+ok      _/Users/luke/Desktop/go-wired-blockchain/trie   0.028s
 ```
 
-## `val`
+## Analysis
+
+### Keys of `proofs`
 
 ```go
-([]uint8) (len=4 cap=8) {
-    00000000  63 6f 69 6e                                       |coin|
-}
+n:
+{16: <bd3ee507e6c67cfefca98f84be47c1bbc009315fabc4405db4ba32190374572a> } 
+
+enc(rlped):
+[226 22 160 189 62 229 7 230 198 124 254 252 169 143 132 190 71 193 187 192 9 49 95 171 196 64 93 180 186 50 25 3 116 87 42]
+
+hash:
+<5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84> 
 ```
+
+```go
+n:
+[
+  0:  1:  2:  3:  4: <94a9f95bd89698e4da1812e0518053813b4d5b87caaf6b3c6fa57e9e50c0ff68> 5:  6:  7:  8: {206f727365: 7374616c6c696f6e } 9:  a:  b:  c:  d:  e:  f:  [17]:  
+] 
+
+enc(rlped):
+[248 64 128 128 128 128 160 148 169 249 91 216 150 152 228 218 24 18 224 81 128 83 129 59 77 91 135 202 175 107 60 111 165 126 158 80 192 255 104 128 128 128 207 133 32 111 114 115 101 136 115 116 97 108 108 105 111 110 128 128 128 128 128 128 128 128]
+
+hash:
+<bd3ee507e6c67cfefca98f84be47c1bbc009315fabc4405db4ba32190374572a> 
+```
+
+```go
+n:
+{006f: <d43b87fdcd4217013ccc92d04662e12d36e4cc25dc690077cd821a1956fc3e36> } 
+
+enc(rlped):
+[228 130 0 111 160 212 59 135 253 205 66 23 1 60 204 146 208 70 98 225 45 54 228 204 37 220 105 0 119 205 130 26 25 86 252 62 54]
+
+hash:
+<94a9f95bd89698e4da1812e0518053813b4d5b87caaf6b3c6fa57e9e50c0ff68> 
+```
+
+```go
+n:
+[
+  0:  1:  2:  3:  4:  5:  6: {17: [
+      0:  1:  2:  3:  4:  5:  6: {35: 636f696e } 7:  8:  9:  a:  b:  c:  d:  e:  f:  [17]: 7075707079 
+    ] } 7:  8:  9:  a:  b:  c:  d:  e:  f:  [17]: 76657262 
+] 
+
+enc(rlped):
+[243 128 128 128 128 128 128 222 23 220 128 128 128 128 128 128 198 53 132 99 111 105 110 128 128 128 128 128 128 128 128 128 133 112 117 112 112 121 128 128 128 128 128 128 128 128 128 132 118 101 114 98]
+
+hash:
+<d43b87fdcd4217013ccc92d04662e12d36e4cc25dc690077cd821a1956fc3e36> 
+```
+
+Same as `Trivial Example`!
+
+# 🤔 Another Void Proof
+
+Find `cat`:
+
+```go
+n:
+{16: <bd3ee507e6c67cfefca98f84be47c1bbc009315fabc4405db4ba32190374572a> } 
+
+enc(rlped):
+[226 22 160 189 62 229 7 230 198 124 254 252 169 143 132 190 71 193 187 192 9 49 95 171 196 64 93 180 186 50 25 3 116 87 42]
+
+hash:
+<5991bb8c6514148a29db676a14ac506cd2cd5775ace63c30a4fe457715e9ac84> 
+```
+
+```go
+n:
+[
+  0:  1:  2:  3:  4: <94a9f95bd89698e4da1812e0518053813b4d5b87caaf6b3c6fa57e9e50c0ff68> 5:  6:  7:  8: {206f727365: 7374616c6c696f6e } 9:  a:  b:  c:  d:  e:  f:  [17]:  
+] 
+
+enc(rlped):
+[248 64 128 128 128 128 160 148 169 249 91 216 150 152 228 218 24 18 224 81 128 83 129 59 77 91 135 202 175 107 60 111 165 126 158 80 192 255 104 128 128 128 207 133 32 111 114 115 101 136 115 116 97 108 108 105 111 110 128 128 128 128 128 128 128 128]
+
+hash:
+<bd3ee507e6c67cfefca98f84be47c1bbc009315fabc4405db4ba32190374572a> 
+```
+
+Return rootHash and it's all nodes.
+
+# Conclusion
+
+* Basically, `VerifyProof` spends same costs no matter what be verified.
+
+* Future Work: So how can I calculate that costs?
