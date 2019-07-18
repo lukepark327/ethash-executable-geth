@@ -12,7 +12,7 @@ $ curl -X POST --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"
 
 * In `internal/jsre/deps/web3.js`.
 
-* There are some js file's binary datas in `internal/jsre/deps/bindata.go`.
+* There are some js file's binary (bytecode) datas in `internal/jsre/deps/bindata.go`.
 
 * Running binary with `c.jsre.Run('[codes]')` like:
 
