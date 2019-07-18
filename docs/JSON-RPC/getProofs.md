@@ -1,3 +1,8 @@
+# TODO
+
+1. `infura` -> own mainnet.
+2. Modifying `web3.js@1.0.0`'s `getProof` and `go-ethereum` to be able return **Void Proofs**.
+
 # getProofs.js
 
 ```js
@@ -48,7 +53,7 @@ Promise.all(proofs).then((res) => {
     ];
 
     // print
-    console.log(preRlp);
+    // console.log(preRlp);
     console.log(rlp.encode(preRlp));
 });
 ```
