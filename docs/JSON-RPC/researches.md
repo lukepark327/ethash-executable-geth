@@ -35,6 +35,10 @@ if res, err := c.jsre.Run(`
 
 in `console/console.go`.
 
+# Conclusion
+
+Creating a new js code instead of modifying a current web3.js.
+
 # References
 
 * https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_blocknumber
