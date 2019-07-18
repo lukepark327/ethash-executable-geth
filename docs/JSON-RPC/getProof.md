@@ -67,7 +67,13 @@ node getProofs.js 0x7224769b9eE714dAA816053732D6Ed0AA35714CB 6011146 6011172
 
 ## Output
 
-```bash
+```
+<Buffer f9 26 fe 94 72 24 76 9b 9e e7 14 da a8 16 05 37 32 d6 ed 0a a3 57 14 cb 83 5b b9 0a f9 26 e2 f9 0c f3 b9 02 14 f9 02 11 a0 1a 4a 03 24 7f 41 7a fb e5 ... 9935 more bytes>
+```
+
+### Rlp encoded data contains
+
+```
 [
   '0x7224769b9eE714dAA816053732D6Ed0AA35714CB',
   6011146,
@@ -104,7 +110,6 @@ node getProofs.js 0x7224769b9eE714dAA816053732D6Ed0AA35714CB 6011146 6011172
     ]
   ]
 ]
-<Buffer f9 26 fe 94 72 24 76 9b 9e e7 14 da a8 16 05 37 32 d6 ed 0a a3 57 14 cb 83 5b b9 0a f9 26 e2 f9 0c f3 b9 02 14 f9 02 11 a0 1a 4a 03 24 7f 41 7a fb e5 ... 9935 more bytes>
 ```
 
 * Account's address
