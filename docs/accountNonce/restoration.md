@@ -128,3 +128,73 @@ func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bo
 }
 ```
 
+## preCheck
+
+```go
+func (st *StateTransition) preCheck() error {
+	// Make sure this transaction's nonce is correct.
+	if st.msg.CheckNonce() {
+		nonce := st.state.GetNonce(st.msg.From())
+		if nonce < st.msg.Nonce() {
+			return ErrNonceTooHigh
+		} else if nonce > st.msg.Nonce() {
+			return ErrNonceTooLow
+		}
+	}
+	return st.buyGas()
+}
+```
+
+# Modifying Geth
+
+* `TransitionDb()` in `core/state_transition.go`
+
+```go
+func (st *StateTransition) preCheck() error {
+	// Make sure this transaction's nonce is correct.
+	if st.msg.CheckNonce() {
+		// nonce := st.state.GetNonce(st.msg.From())
+		st.state.GetNonce(st.msg.From())
+		/*
+			if nonce < st.msg.Nonce() {
+				return ErrNonceTooHigh
+			} else if nonce > st.msg.Nonce() {
+				return ErrNonceTooLow
+			}
+		*/
+	}
+	return st.buyGas()
+}
+
+var (
+	MaxTransactionPerBlock = uint64(64)
+)
+
+func (st *StateTransition) TransitionDb() (ret []byte, usedGas uint64, failed bool, err error) {
+
+	// ...
+
+	else {
+		log.Info("### transfer value TX calls evm.Call()") // (jmlee)
+		// Increment the nonce for the next transaction
+
+		base := st.evm.BlockNumber.Uint64() * MaxTransactionPerBlock
+
+		log.Info("Base Number and Nonce", "base", base, "nonce", st.state.GetNonce(sender.Address()), "from", msg.From())
+
+		if int64(st.state.GetNonce(sender.Address())-base) < 0 {
+			log.Info("RESET NONCE AS A BASE")
+			st.state.SetNonce(msg.From(), base)
+		} else {
+			log.Info("NONCE++")
+			st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
+		}
+
+		// st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
+
+		ret, st.gas, vmerr = evm.Call(sender, st.to(), st.data, st.gas, st.value)
+	}
+	
+	// ...
+}
+```
