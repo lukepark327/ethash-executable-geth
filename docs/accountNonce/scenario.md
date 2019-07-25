@@ -18,9 +18,7 @@
 
   * INFO [07-25|11:20:15.580] RESET NONCE
   * base=832 nonce=0
-  
     * 832 is 64 * 13 (MaxTransactionLimit * NextBlockNumber)
-    
   * Now next block's nonce is 832
   * Current nonce is 0
     
@@ -72,9 +70,7 @@
 
   * INFO [07-25|12:56:21.539] RESET NONCE
   * base=960 nonce=834
-  
     * 960 is 64 * 15 (MaxTransactionLimit * NextBlockNumber)
-    
   * Now next block's nonce is 960
   * Current nonce is 834
     
