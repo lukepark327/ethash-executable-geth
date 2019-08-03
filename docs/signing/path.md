@@ -17,11 +17,13 @@ If the given passwd isn't able to decrypt the key it fails.
 
 `wallet` is used to create signed Tx. Using private key associated with `From`.
 
+<!--
 ### signTransaction()
 
 `signed, err := s.signTransaction(ctx, &args, passwd)`
 
 `signTransction` calls `setDefaults` and `toTranscation`.
+-->
 
 ### setDefaults()
 
