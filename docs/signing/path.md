@@ -27,6 +27,25 @@ If the given passwd isn't able to decrypt the key it fails.
 
 Setting receipt address with `args.To`.
 
-### SubmitTransaction()
+`signed, err := wallet.SignTx(account, tx, s.b.ChainConfig().ChainID)`
 
-Finally, `SendTransaction` calls `SubmitTransaction`.
+### signed
+
+`signed`'s type is `Transaction`.
+
+```go
+type Transaction struct {
+	data txdata
+	// caches
+	hash atomic.Value
+	size atomic.Value
+	from atomic.Value
+}
+```
+
+*Set `from` here?*
+
+## SubmitTransaction()
+
+Finally, `SendTransaction` calls `SubmitTransaction`. `SubmitTransaction` is a helper function that submits tx to txPool and logs a message.
+
